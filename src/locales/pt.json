@@ -1,0 +1,42 @@
+{
+  "global": {
+    "name": "Sistema de Gestão de Espaços",
+    "version": "Versão"
+  },
+  "loginPage": {
+    "h1": "SISTEMA DE GESTÃO DE ESPAÇOS",
+    "h2": "Informe seu email e senha",
+    "user": "Email",
+    "userPlaceholder": "Digite seu email",
+    "password": "Senha",
+    "passwordPlaceholder": "Digite sua senha",
+    "forgotPassword": "Esqueceu sua senha?",
+    "signIn": "Entrar",
+    "signup": "Cadastre-se"
+  },
+  "signupPage": {
+    "h1": "CRIAR NOVA CONTA",
+    "h2": "Preencha os dados para criar sua conta",
+    "name": "Nome Completo",
+    "namePlaceholder": "Digite seu nome completo",
+    "email": "Email",
+    "emailPlaceholder": "Digite seu email",
+    "password": "Senha",
+    "passwordPlaceholder": "Digite sua senha",
+    "confirmPassword": "Confirmar Senha",
+    "confirmPasswordPlaceholder": "Confirme sua senha",
+    "matricula": "Matrícula",
+    "matriculaPlaceholder": "Digite sua matrícula",
+    "telefone": "Telefone",
+    "telefonePlaceholder": "Digite seu telefone",
+    "cargo": "Cargo",
+    "fotoPerfil": "URL da Foto de Perfil",
+    "fotoPerfilPlaceholder": "URL da sua foto (opcional)",
+    "createAccount": "Criar Conta",
+    "backToLogin": "Voltar ao Login"
+  },
+  "footer": {
+    "university": "Universidade Federal do Ceará - UECE",
+    "privacyPolicy": "Política de Privacidade e Segurança"
+  }
+}
