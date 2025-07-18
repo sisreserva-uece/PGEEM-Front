@@ -14,6 +14,11 @@
     "signIn": "Entrar",
     "signup": "Cadastre-se"
   },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "spaces": "Espaços",
+    "reservations": "Reservas"
+  },
   "signupPage": {
     "h1": "CRIAR NOVA CONTA",
     "h2": "Preencha os dados para criar sua conta",

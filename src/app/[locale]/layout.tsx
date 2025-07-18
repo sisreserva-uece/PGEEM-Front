@@ -3,6 +3,8 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import React from 'react';
 import { Toaster } from 'sonner';
+import { Footer } from '@/components/Footer';
+import { Header } from '@/components/Header';
 import { inter } from '@/lib/font';
 import { routing } from '@/lib/i18nNavigation';
 import { AppProviders } from '@/lib/providers/AppProviders';
@@ -28,7 +30,13 @@ export default async function RootLayout(props: {
       <body suppressHydrationWarning className="antialiased">
         <AppProviders>
           <NextIntlClientProvider locale={locale} messages={messages}>
-            {props.children}
+            <div className="flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-grow bg-gradient-to-b from-white from-50% to-[#D3EADA]">
+                {props.children}
+              </main>
+              <Footer />
+            </div>
             <Toaster richColors />
           </NextIntlClientProvider>
         </AppProviders>

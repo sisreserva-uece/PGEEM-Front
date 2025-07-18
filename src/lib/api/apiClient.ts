@@ -1,56 +1,40 @@
+import type { AxiosError, AxiosResponse } from 'axios';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 import { toast } from 'sonner';
 import { Env } from '../env';
-import { useAuthStore } from '../store/authStore';
 
-class ApiClient {
-  private baseURL: string;
-  constructor() {
-    this.baseURL = Env.NEXT_PUBLIC_API_BASE_URL;
-  }
+const apiClient = axios.create({
+  baseURL: Env.NEXT_PUBLIC_API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<Response> {
-    const { token } = useAuthStore.getState();
-    const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
-      ...options,
-    };
-    const response = await fetch(`${this.baseURL}${endpoint}`, config);
-    if (!response.ok) {
-      const errorMessage = await response.text();
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = Cookies.get('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error: AxiosError) => {
+    return Promise.reject(error);
+  },
+);
+
+apiClient.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
+    if (error.response) {
+      const errorData = error.response.data as { error?: { message?: string } };
+      const errorMessage = errorData?.error?.message || 'Um erro inesperado ocorreu, por favor tente novamente'
+        + ' ou contate o suporte.';
       toast.error(errorMessage);
     }
-    return response;
-  }
+    return Promise.reject(error);
+  },
+);
 
-  async post<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-  }
-
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'GET',
-    });
-  }
-
-  async put<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-  }
-
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'DELETE',
-    });
-  }
-}
-
-export const apiClient = new ApiClient();
+export default apiClient;

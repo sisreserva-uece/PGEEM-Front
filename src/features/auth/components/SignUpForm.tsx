@@ -1,18 +1,19 @@
 'use client';
 
 import type { SignUpFormValues } from '../types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Image from 'next/image';
+import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FormHeader } from '@/components/ui/typography';
 import { useRouter } from '@/lib/i18nNavigation';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Image from 'next/image';
-import { Controller, useForm } from 'react-hook-form';
 import { useSignUp } from '../hooks/useSignUp';
 import { signUpSchema } from '../types';
 
-export function SignupForm() {
+export function SignUpForm() {
   const router = useRouter();
   const { signUp, isPending } = useSignUp();
   const {
@@ -29,6 +30,7 @@ export function SignupForm() {
       confirmSenha: '',
       matricula: '',
       telefone: '',
+      documentoFiscal: '',
       fotoPerfil: '',
       cargosNome: 'ALUNO',
     },
@@ -39,7 +41,7 @@ export function SignupForm() {
   };
 
   const handleBackToSignin = () => {
-    router.push('/');
+    router.replace('/');
   };
 
   return (
@@ -57,10 +59,10 @@ export function SignupForm() {
             />
           </div>
           <div className="p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-2">CRIAR NOVA CONTA</h2>
-              <p className="text-sm text-green-600 font-medium">Preencha os dados para criar sua conta</p>
-            </div>
+            <FormHeader
+              title="CRIAR NOVA CONTA"
+              subtitle="Preencha os dados para criar sua conta"
+            />
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -88,7 +90,7 @@ export function SignupForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="matricula">Matrícula *</Label>
                   <Input id="matricula" type="text" inputMode="numeric" placeholder="Digite sua matrícula" disabled={isPending} {...register('matricula')} />
@@ -98,6 +100,11 @@ export function SignupForm() {
                   <Label htmlFor="telefone">Telefone *</Label>
                   <Input id="telefone" type="tel" placeholder="Digite seu telefone" disabled={isPending} {...register('telefone')} />
                   {errors.telefone && <p className="text-sm font-medium text-red-500 mt-1">{errors.telefone.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="telefone">Documento Fiscal *</Label>
+                  <Input id="telefone" type="tel" placeholder="Digite seu Documento Fiscal" disabled={isPending} {...register('documentoFiscal')} />
+                  {errors.documentoFiscal && <p className="text-sm font-medium text-red-500 mt-1">{errors.documentoFiscal.message}</p>}
                 </div>
               </div>
 
@@ -135,14 +142,14 @@ export function SignupForm() {
                   variant="outline"
                   onClick={handleBackToSignin}
                   disabled={isPending}
-                  className="flex-1 border-gray-300 text-gray-600 hover:bg-gray-50 font-medium bg-transparent"
+                  className="flex-1"
                 >
                   Voltar ao Login
                 </Button>
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium"
+                  className="flex-1"
                 >
                   {isPending ? 'Criando conta...' : 'Criar Conta'}
                 </Button>

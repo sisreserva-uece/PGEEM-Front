@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FormHeader } from '@/components/ui/typography';
 import { useRouter } from '@/lib/i18nNavigation';
 import { useSignIn } from '../hooks/useSignIn';
 import { signInSchema } from '../types';
@@ -59,10 +60,10 @@ export function SignInForm() {
             />
           </div>
           <div className="p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-2">{t('h1')}</h2>
-              <p className="text-sm text-green-600 font-medium">{t('h2')}</p>
-            </div>
+            <FormHeader
+              title={t('h1')}
+              subtitle={t('h2')}
+            />
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -105,8 +106,9 @@ export function SignInForm() {
               <div className="flex gap-3 pt-2">
                 <Button
                   type="submit"
+                  variant="default"
                   disabled={isPending}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium"
+                  className="flex-1"
                 >
                   {isPending ? 'Entrando...' : t('signIn')}
                 </Button>
@@ -115,7 +117,7 @@ export function SignInForm() {
                   variant="outline"
                   onClick={handleSignup}
                   disabled={isPending}
-                  className="flex-1 border-green-600 text-green-600 hover:bg-green-50 font-medium bg-transparent"
+                  className="flex-1"
                 >
                   {t('signup')}
                 </Button>

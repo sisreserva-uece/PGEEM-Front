@@ -1,34 +1,30 @@
 'use client';
 
 import type React from 'react';
-import { useEffect } from 'react';
-import { useAuthStore } from '@/lib/authStore';
-import { useRouter } from '@/lib/i18nNavigation';
+import { CenteredPageLayout } from '@/components/CenteredPageLayout';
+import { Loading } from '@/components/Loading';
+import { ProtectedNavigation } from '@/features/navigation/components/ProtectedNavigation';
+import { useAuthStore } from '@/lib/store/authStore';
 
 export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, token } = useAuthStore();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isAuthenticated || !token) {
-      router.push('/');
-    }
-  }, [isAuthenticated, token, router]);
-
-  if (!isAuthenticated || !token) {
+  const status = useAuthStore(state => state.status);
+  if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p>Verificando autenticação...</p>
-        </div>
-      </div>
+      <CenteredPageLayout>
+        <Loading />
+      </CenteredPageLayout>
     );
   }
-
-  return <>{children}</>;
+  return (
+    <>
+      <ProtectedNavigation />
+      <CenteredPageLayout>
+        {children}
+      </CenteredPageLayout>
+    </>
+  );
 }
