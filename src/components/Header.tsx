@@ -13,7 +13,7 @@ export function Header() {
       <div className="mx-auto flex max-w-[1920px] flex-col items-center gap-4 md:flex-row md:items-center md:justify-between">
         <Image
           src="/assets/images/header/logo.png"
-          alt="Logo da Universidade Estadual do Ceará"
+          alt="Logo da Universidade Estadual do Cearáaa"
           width={270}
           height={80}
           className="h-16 w-auto md:h-20"
