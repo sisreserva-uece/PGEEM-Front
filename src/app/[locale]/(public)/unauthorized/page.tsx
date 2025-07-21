@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import '@/styles/global.css';
 
 export default function UnauthorizedPage() {
+  //   TODO: make this a component
   const router = useRouter();
   return (
     <div className="flex flex-col items-center">

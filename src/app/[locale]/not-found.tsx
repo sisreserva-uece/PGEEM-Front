@@ -1,4 +1,4 @@
-import { NotFound } from '@/features/navigation/components/NotFound';
+import { NotFound } from '@/components/NotFound';
 
 export default function NotFoundPage() {
   return <NotFound />;

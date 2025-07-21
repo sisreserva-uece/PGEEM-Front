@@ -2,8 +2,8 @@ import type { SignInFormValues } from '../types';
 import { useMutation } from '@tanstack/react-query';
 import Cookies from 'js-cookie';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import { useRouter } from '@/lib/i18nNavigation';
-import { useAuthStore } from '@/lib/store/authStore';
 import { authService } from '../services/authService';
 
 export function useSignIn() {

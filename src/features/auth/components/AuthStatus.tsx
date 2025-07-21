@@ -1,8 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import { useRouter } from '@/lib/i18nNavigation';
-import { useAuthStore } from '@/lib/store/authStore';
 
 export function AuthStatus() {
   const { status, user, clearAuth } = useAuthStore();

@@ -45,17 +45,24 @@ export type errorResponse = {
   name: string;
   message: string;
 };
-export type UserProfile = {
+export type cargo = {
+  descricao: string;
   id: string;
   nome: string;
-  email: string;
+};
+export type instituicao = {
+  descricao: string;
+  id: string;
+  nome: string;
+};
+export type UserProfile = {
+  cargos: cargo[];
   documentoFiscal: string;
   fotoPerfil?: string;
+  id: string;
+  instituicao: instituicao;
   matricula?: number;
-  telefone?: string;
-  instituicaoId: string;
-  instituicaoNome: string;
+  nome: string;
   refreshTokenEnabled: boolean;
-  cargosId: string[];
-  cargosNome: string[];
+  telefone?: string;
 };

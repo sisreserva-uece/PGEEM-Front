@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuthStore } from '@/lib/store/authStore';
+import { useAuthStore } from '@/features/auth/store/authStore';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
