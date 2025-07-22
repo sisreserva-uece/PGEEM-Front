@@ -7,6 +7,7 @@ import { CenteredPageLayout } from '@/components/CenteredPageLayout';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { AuthInitializer } from '@/features/auth/components/AuthInitializer';
+import { ProtectedNavigation } from '@/features/nav-bar/components/ProtectedNavigation';
 import { inter } from '@/lib/font';
 import { routing } from '@/lib/i18nNavigation';
 import { AppProviders } from '@/lib/providers/AppProviders';
@@ -33,8 +34,9 @@ export default async function RootLayout(props: {
         <AuthInitializer>
           <AppProviders>
             <NextIntlClientProvider locale={locale} messages={messages}>
-              <div className="flex min-h-screen flex-col">
+              <div className="flex min-h-screen flex-col overflow-x-hidden">
                 <Header />
+                <ProtectedNavigation />
                 <main className="flex-grow bg-gradient-to-b from-white from-50% to-[#D3EADA]">
                   <CenteredPageLayout>
                     {props.children}

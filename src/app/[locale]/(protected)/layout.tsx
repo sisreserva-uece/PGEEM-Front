@@ -5,7 +5,6 @@ import { CenteredPageLayout } from '@/components/CenteredPageLayout';
 import { Loading } from '@/components/Loading';
 import { useAuthorization } from '@/features/auth/hooks/useAuthorization';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { ProtectedNavigation } from '@/features/nav-bar/components/ProtectedNavigation';
 import { useRouter } from '@/lib/i18nNavigation';
 
 function AuthorizationGuard({ children }: { children: React.ReactNode }) {
@@ -35,7 +34,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   }
   return (
     <>
-      <ProtectedNavigation />
       <AuthorizationGuard>{children}</AuthorizationGuard>
     </>
   );

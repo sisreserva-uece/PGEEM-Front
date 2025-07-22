@@ -68,9 +68,6 @@ apiClient.interceptors.response.use(
       try {
         const { data } = await authService.refreshToken();
         const token = data.data?.token;
-        if (!token) {
-          throw new Error('Refresh endpoint did not provide a token.');
-        }
         useAuthStore.getState().setAccessToken(token);
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${token}`;
