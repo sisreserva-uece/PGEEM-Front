@@ -1,32 +1,42 @@
 'use client';
 
-import type React from 'react';
+import React, { useEffect } from 'react';
 import { CenteredPageLayout } from '@/components/CenteredPageLayout';
 import { Loading } from '@/components/Loading';
+import { useAuthorization } from '@/features/auth/hooks/useAuthorization';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { ProtectedNavigation } from '@/features/nav-bar/components/ProtectedNavigation';
+import { useRouter } from '@/lib/i18nNavigation';
 
-export default function ProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const status = useAuthStore(state => state.status);
-
-  if (status === 'loading') {
+function AuthorizationGuard({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const { isAuthorized } = useAuthorization();
+  useEffect(() => {
+    if (!isAuthorized) {
+      router.replace('/unauthorized');
+    }
+  }, [isAuthorized, router]);
+  if (!isAuthorized) {
     return (
       <CenteredPageLayout>
         <Loading />
       </CenteredPageLayout>
     );
   }
+  return <>{children}</>;
+}
 
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const status = useAuthStore(state => state.status);
+  if (status !== 'authenticated') {
+    return (
+      <Loading />
+    );
+  }
   return (
-    <div className="flex flex-col">
+    <>
       <ProtectedNavigation />
-      <CenteredPageLayout>
-        {children}
-      </CenteredPageLayout>
-    </div>
+      <AuthorizationGuard>{children}</AuthorizationGuard>
+    </>
   );
 }

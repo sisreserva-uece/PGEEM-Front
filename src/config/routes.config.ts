@@ -1,15 +1,17 @@
-type NavItem = {
+import type { UserRole } from '@/features/auth/types';
+
+export type RouteConfig = {
   title: string;
   href: string;
-  allowedRoles: string[];
-  subItems?: NavItem[];
+  allowedRoles: UserRole[];
+  subItems?: RouteConfig[];
 };
 
-export const menuItems: NavItem[] = [
+export const routesConfig: RouteConfig[] = [
   {
     title: 'Espaços',
     href: '#',
-    allowedRoles: ['ADMIN', 'GESTOR'],
+    allowedRoles: ['ADMIN', 'COORDENADOR'],
     subItems: [
       {
         title: 'Criar Espaço',
@@ -19,7 +21,7 @@ export const menuItems: NavItem[] = [
       {
         title: 'Ver Espaços',
         href: '/espacos',
-        allowedRoles: ['ADMIN', 'GESTOR'],
+        allowedRoles: ['ADMIN', 'COORDENADOR'],
       },
     ],
   },

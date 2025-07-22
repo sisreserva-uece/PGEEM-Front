@@ -1,15 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { useLogout } from '@/features/auth/hooks/useLogout';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useRouter } from '@/lib/i18nNavigation';
 
 export function AuthStatus() {
-  const { status, user, clearAuth } = useAuthStore();
-  const router = useRouter();
+  const { status, user } = useAuthStore();
+  const { logout, isPending } = useLogout();
   const handleLogout = () => {
-    router.replace('/signin');
-    clearAuth();
+    logout();
   };
   if (status === 'unauthenticated' || !user) {
     return null;
@@ -25,6 +24,7 @@ export function AuthStatus() {
         onClick={handleLogout}
         variant="destructive_outline"
         size="sm"
+        disabled={isPending}
       >
         Sair
       </Button>

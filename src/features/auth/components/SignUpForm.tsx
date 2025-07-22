@@ -41,7 +41,7 @@ export function SignUpForm() {
   };
 
   const handleBackToSignin = () => {
-    router.replace('/');
+    router.push('/signin');
   };
 
   return (

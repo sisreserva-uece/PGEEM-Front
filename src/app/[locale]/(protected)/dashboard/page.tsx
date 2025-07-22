@@ -20,11 +20,6 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-blue-800 mb-2">Informações do Usuário</h2>
               <div className="space-y-1 text-blue-600">
                 <p>
-                  <strong>Email:</strong>
-                  {' '}
-                  {user.email}
-                </p>
-                <p>
                   <strong>Nome:</strong>
                   {' '}
                   {user.nome}

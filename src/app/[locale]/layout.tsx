@@ -3,8 +3,10 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import React from 'react';
 import { Toaster } from 'sonner';
+import { CenteredPageLayout } from '@/components/CenteredPageLayout';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
+import { AuthInitializer } from '@/features/auth/components/AuthInitializer';
 import { inter } from '@/lib/font';
 import { routing } from '@/lib/i18nNavigation';
 import { AppProviders } from '@/lib/providers/AppProviders';
@@ -28,18 +30,22 @@ export default async function RootLayout(props: {
   return (
     <html lang={locale} className={`${inter.className}`}>
       <body suppressHydrationWarning className="antialiased">
-        <AppProviders>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-grow bg-gradient-to-b from-white from-50% to-[#D3EADA]">
-                {props.children}
-              </main>
-              <Footer />
-            </div>
-            <Toaster richColors />
-          </NextIntlClientProvider>
-        </AppProviders>
+        <AuthInitializer>
+          <AppProviders>
+            <NextIntlClientProvider locale={locale} messages={messages}>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-grow bg-gradient-to-b from-white from-50% to-[#D3EADA]">
+                  <CenteredPageLayout>
+                    {props.children}
+                  </CenteredPageLayout>
+                </main>
+                <Footer />
+              </div>
+              <Toaster richColors />
+            </NextIntlClientProvider>
+          </AppProviders>
+        </AuthInitializer>
       </body>
     </html>
   );

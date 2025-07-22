@@ -1,11 +1,15 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { useLogout } from '@/features/auth/hooks/useLogout'; // Import the hook
 import '@/styles/global.css';
 
 export default function UnauthorizedPage() {
-  //   TODO: make this a component
   const router = useRouter();
+  const { logout, isPending } = useLogout();
+  const handleLogout = () => {
+    logout();
+  };
   return (
     <div className="flex flex-col items-center">
       <h1 className="text-[7rem] font-bold leading-tight">401</h1>
@@ -20,7 +24,9 @@ export default function UnauthorizedPage() {
         <Button variant="outline" onClick={() => router.back()}>
           Voltar
         </Button>
-        <Button onClick={() => router.replace('/')}>Ir para a Home</Button>
+        <Button onClick={handleLogout} disabled={isPending}>
+          {isPending ? 'Saindo...' : 'Sair e ir para o Login'}
+        </Button>
       </div>
     </div>
   );

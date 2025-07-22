@@ -1,34 +1,19 @@
-import type { UserProfile } from '@/features/auth/types';
-import Cookies from 'js-cookie';
+import type { AuthState } from '@/features/auth/types';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
-type AuthState = {
-  user: UserProfile | null;
-  status: 'loading' | 'authenticated' | 'unauthenticated';
-  setAuth: (user: UserProfile) => void;
-  clearAuth: () => void;
-};
+export const SESSION_HINT_KEY = 'session-active';
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    set => ({
-      user: null,
-      status: 'loading',
-      setAuth: user => set({ user, status: 'authenticated' }),
-      clearAuth: () => {
-        Cookies.remove('token');
-        set({ user: null, status: 'unauthenticated' });
-      },
-    }),
-    {
-      name: 'auth-storage',
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.status = state.user ? 'authenticated' : 'unauthenticated';
-        }
-      },
-      partialize: state => ({ user: state.user }),
-    },
-  ),
-);
+export const useAuthStore = create<AuthState>()(set => ({
+  user: null,
+  accessToken: null,
+  status: 'loading',
+  setAuth: (user, accessToken) => {
+    localStorage.setItem(SESSION_HINT_KEY, 'true');
+    set({ user, accessToken, status: 'authenticated' });
+  },
+  setAccessToken: accessToken => set(state => ({ ...state, accessToken })),
+  clearAuth: () => {
+    localStorage.removeItem(SESSION_HINT_KEY);
+    set({ user: null, accessToken: null, status: 'unauthenticated' });
+  },
+}));

@@ -1,6 +1,6 @@
 import { createNavigation } from 'next-intl/navigation';
 import { defineRouting } from 'next-intl/routing';
-import { AppConfig } from './appConfig';
+import { AppConfig } from '@/config/appConfig';
 
 export const routing = defineRouting({
   locales: AppConfig.locales,
@@ -8,4 +8,4 @@ export const routing = defineRouting({
   defaultLocale: AppConfig.defaultLocale,
 });
 
-export const { usePathname, useRouter } = createNavigation(routing);
+export const { useRouter } = createNavigation(routing);

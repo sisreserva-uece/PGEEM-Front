@@ -1,5 +1,6 @@
 'use client';
 
+import type { UserRole } from '@/features/auth/types';
 import Link from 'next/link';
 import * as React from 'react';
 import {
@@ -10,52 +11,53 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
+import { routesConfig } from '@/config/routes.config';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { menuItems } from '@/features/nav-bar/config/navigation';
 
 export function ProtectedNavigation() {
   const { user } = useAuthStore();
   const userRoles = user?.cargos?.map(cargo => cargo.nome) || [];
-
-  function hasAccess(allowedRoles: string[]) {
+  function hasAccess(allowedRoles: UserRole[]) {
     return allowedRoles.some(role => userRoles.includes(role));
   }
-
   return (
-    <NavigationMenu>
+    <NavigationMenu className="z-50">
       <NavigationMenuList>
-        {menuItems.map((item) => {
+        {routesConfig.map((item) => {
           if (!hasAccess(item.allowedRoles)) {
             return null;
           }
-          const visibleSubItems = item.subItems
-            ? item.subItems.filter(sub => hasAccess(sub.allowedRoles))
-            : [];
-
-          return (
-            <NavigationMenuItem key={item.title}>
-              <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[200px] gap-4">
-                  {visibleSubItems.length > 0
-                    ? visibleSubItems.map(sub => (
-                        <li key={sub.title}>
-                          <NavigationMenuLink asChild>
-                          <Link href={sub.href}>{sub.title}</Link>
-                          </NavigationMenuLink>
-                        </li>
-                      ))
-                    : (
-                      <li>
+          const visibleSubItems = item.subItems?.filter(sub =>
+            hasAccess(sub.allowedRoles),
+          ) || [];
+          if (item.subItems && visibleSubItems.length > 0) {
+            return (
+              <NavigationMenuItem key={item.title}>
+                <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[200px] gap-3 p-4">
+                    {visibleSubItems.map(sub => (
+                      <li key={sub.title}>
                         <NavigationMenuLink asChild>
-                          <Link href={item.href}>{item.title}</Link>
+                          <Link href={sub.href}>{sub.title}</Link>
                         </NavigationMenuLink>
                       </li>
-                    )}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          );
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            );
+          }
+          if (!item.subItems && item.href !== '#') {
+            return (
+              <NavigationMenuItem key={item.title}>
+                <NavigationMenuLink asChild>
+                  <Link href={item.href}>{item.title}</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            );
+          }
+          return null;
         })}
       </NavigationMenuList>
     </NavigationMenu>
