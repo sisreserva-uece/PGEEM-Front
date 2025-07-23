@@ -42,7 +42,6 @@ export default antfu({
   ...playwright.configs['flat/recommended'],
 }, {
   rules: {
-    'indent': ['error', 2],
     'antfu/no-top-level-await': 'off',
     'style/brace-style': ['error', '1tbs'],
     'ts/consistent-type-definitions': ['error', 'type'],

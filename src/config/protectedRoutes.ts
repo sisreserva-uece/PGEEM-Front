@@ -26,11 +26,16 @@ function flattenRoutes(routes: RouteConfig[]): FlatRoute[] {
 }
 
 const protectedRoutesMap = flattenRoutes(routesConfig);
+const dashboardPrefix = '/dashboard';
 
 export function getAllowedRolesForPath(pathname: string): UserRole[] | null {
+  if (!pathname.startsWith(dashboardPrefix)) {
+    return null;
+  }
+  const pathWithoutPrefix = pathname.slice(dashboardPrefix.length);
   for (const route of protectedRoutesMap) {
     const fn = match(route.path, { decode: decodeURIComponent });
-    if (fn(pathname)) {
+    if (fn(pathWithoutPrefix)) {
       return route.allowedRoles;
     }
   }

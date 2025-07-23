@@ -18,7 +18,6 @@ export function SignInForm() {
   const t = useTranslations('loginPage');
   const router = useRouter();
   const { signIn, isPending } = useSignIn();
-
   const {
     register,
     handleSubmit,
@@ -30,21 +29,17 @@ export function SignInForm() {
       senha: '',
     },
   });
-
   const onSubmit = (data: SignInFormValues) => {
     signIn(data);
   };
-
   const handleForgotPassword = () => {
     toast('Funcionalidade em desenvolvimento', {
       icon: '🚧',
     });
   };
-
   const handleSignup = () => {
     router.push('/signup');
   };
-
   return (
     <>
       <div className="w-full max-w-lg mx-auto">

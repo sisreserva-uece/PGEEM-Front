@@ -36,6 +36,7 @@ apiClient.interceptors.request.use(
 let failedQueue: { resolve: (value: unknown) => void; reject: (reason?: any) => void }[] = [];
 let isRefreshing = false;
 
+// TODO: fix the refresh logic not working when token expires, and also make it smarter to auto refresh when jwt expires not only after a error api (but also always try it on a error) 401 403
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {

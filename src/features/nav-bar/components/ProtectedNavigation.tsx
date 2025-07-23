@@ -20,7 +20,6 @@ export function ProtectedNavigation() {
   if (status !== 'authenticated') {
     return null;
   }
-
   const userRoles = user?.cargos?.map(cargo => cargo.nome) || [];
   function hasAccess(allowedRoles: UserRole[]) {
     if (allowedRoles.length === 0) {
