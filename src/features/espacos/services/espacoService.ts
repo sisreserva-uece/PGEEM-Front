@@ -1,77 +1,27 @@
 import type { z } from 'zod';
-import type { ApiSelectOption, Espaco, PaginatedResponse } from '../types';
+import type { Espaco } from '../types';
 import type { espacoFormSchema } from '../validation/espacoSchema';
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ApiSelectOption, PaginatedResponse } from '@/types/api';
+import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api/apiClient';
+import { createCrudHooks } from '@/lib/hooks/useCrud';
 
-export const espacoKeys = {
-  all: ['espacos'] as const,
-  lists: () => [...espacoKeys.all, 'list'] as const,
-  list: (filters: Record<string, any>) => [...espacoKeys.lists(), filters] as const,
-  details: () => [...espacoKeys.all, 'detail'] as const,
-  detail: (id: string) => [...espacoKeys.details(), id] as const,
-  selectOptions: (name: string) => [...espacoKeys.all, 'selectOptions', name] as const,
-};
+type EspacoCreateDto = z.infer<typeof espacoFormSchema>;
+type EspacoUpdateDto = z.infer<typeof espacoFormSchema>;
 
-export function useGetEspacos(params: {
-  page: number;
-  size: number;
-  sortField: string;
-  sortOrder: 'asc' | 'desc';
-}) {
-  return useQuery({
-    queryKey: espacoKeys.list(params),
-    queryFn: async () => {
-      const response = await apiClient.get<{ data: PaginatedResponse<Espaco> }>('/espaco', { params });
-      return response.data.data;
-    },
-    placeholderData: keepPreviousData,
-  });
-}
+export const {
+  useGetAll: useGetEspacos,
+  useCreate: useCreateEspaco,
+  useUpdate: useUpdateEspaco,
+} = createCrudHooks<Espaco, EspacoCreateDto, EspacoUpdateDto>('espaco');
 
 export function useGetSelectOptions(endpoint: string, key: string) {
   return useQuery({
-    queryKey: espacoKeys.selectOptions(key),
+    queryKey: ['selectOptions', key], // Simplified key
     queryFn: async () => {
-      const response = await apiClient.get<{ data: PaginatedResponse<ApiSelectOption> }>(endpoint);
+      const response = await apiClient.get<{ data: PaginatedResponse<ApiSelectOption> }>(endpoint, { params: { todos: true } });
       return response.data.data.content;
     },
     staleTime: 1000 * 60 * 5,
-  });
-}
-
-export function useCreateEspaco() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (newEspaco: z.infer<typeof espacoFormSchema>) => {
-      return apiClient.post('/espaco', newEspaco);
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: espacoKeys.lists() });
-    },
-  });
-}
-
-export function useUpdateEspaco() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, ...updatedEspaco }: { id: string } & z.infer<typeof espacoFormSchema>) => {
-      return apiClient.put(`/espaco/${id}`, updatedEspaco);
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: espacoKeys.lists() });
-    },
-  });
-}
-
-export function useDeleteEspaco() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => {
-      return apiClient.delete(`/espaco/${id}`);
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: espacoKeys.lists() });
-    },
   });
 }

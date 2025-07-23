@@ -2,71 +2,49 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Espaco } from '../types';
-import { MoreHorizontal } from 'lucide-react';
+import { Eye, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
-type RowActionsProps = {
-  row: { original: Espaco };
+type GetColumnsProps = {
+  onView: (espaco: Espaco) => void;
   onEdit: (espaco: Espaco) => void;
-  onDelete: (espaco: Espaco) => void;
 };
 
-function RowActions({ row, onEdit, onDelete }: RowActionsProps) {
-  const espaco = row.original;
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Abrir menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => onEdit(espaco)}>
-          Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem className="text-red-600" onClick={() => onDelete(espaco)}>
-          Excluir
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-export const getColumns = ({
-  onEdit,
-  onDelete,
-}: {
-  onEdit: (espaco: Espaco) => void;
-  onDelete: (espaco: Espaco) => void;
-}): ColumnDef<Espaco>[] => [
+export const getColumns = ({ onView, onEdit }: GetColumnsProps): ColumnDef<Espaco>[] => [
   {
     accessorKey: 'nome',
-    header: 'Nome',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
   },
   {
     accessorKey: 'departamento.nome',
-    header: 'Departamento',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Departamento" />,
   },
   {
     accessorKey: 'localizacao.nome',
-    header: 'Localização',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Localização" />,
   },
   {
     accessorKey: 'tipoEspaco.nome',
-    header: 'Tipo de Espaço',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo de Espaço" />,
   },
   {
     id: 'actions',
-    cell: ({ row }) => <RowActions row={row} onEdit={onEdit} onDelete={onDelete} />,
+    header: 'Ações',
+    cell: ({ row }) => {
+      const espaco = row.original;
+      return (
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="icon" onClick={() => onView(espaco)}>
+            <Eye className="h-4 w-4" />
+            <span className="sr-only">Visualizar</span>
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => onEdit(espaco)}>
+            <Pencil className="h-4 w-4" />
+            <span className="sr-only">Editar</span>
+          </Button>
+        </div>
+      );
+    },
   },
 ];
