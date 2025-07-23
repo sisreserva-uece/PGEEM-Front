@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import Link from 'next/link';
 import { AuthStatus } from '@/features/auth/components/AuthStatus';
 
 export function Header() {
@@ -11,14 +12,16 @@ export function Header() {
       className="w-full bg-gradient-to-b from-[color:var(--color-green-bg)] from-65% to-[color:var(--color-blue-gradient)] px-4 py-4 sm:px-8 md:bg-gradient-to-r"
     >
       <div className="mx-auto flex max-w-[1920px] flex-col items-center gap-4 md:flex-row md:items-center md:justify-between">
-        <Image
-          src="/assets/images/header/logo.png"
-          alt="Logo da Universidade Estadual do Ceará"
-          width={270}
-          height={80}
-          className="h-16 w-auto md:h-20"
-          priority
-        />
+        <Link href="/dashboard" className="cursor-pointer">
+          <Image
+            src="/assets/images/header/logo.png"
+            alt="Logo da Universidade Estadual do Ceará"
+            width={270}
+            height={80}
+            className="h-16 w-auto md:h-20"
+            priority
+          />
+        </Link>
         <div className="flex flex-col items-center gap-4 text-white md:items-end">
           <div className="flex flex-col items-center gap-2 md:flex-row md:gap-4">
             <h1

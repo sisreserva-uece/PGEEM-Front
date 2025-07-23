@@ -15,10 +15,22 @@ export type Espaco = {
   tipoAtividade: ApiSelectOption;
 };
 
-export type PaginatedResponse<T> = {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  number: number;
+export type Cargo = {
+  id: string;
+  nome: string;
+  descricao: string;
+};
+
+export type Usuario = {
+  id: string;
+  nome: string;
+  email: string;
+  cargos: Cargo[];
+};
+
+export type EspacoGestorLink = {
+  id: string;
+  espaco: Espaco;
+  gestor: Usuario;
+  estaAtivo: boolean;
 };

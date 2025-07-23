@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { ManageGestoresTab } from '@/features/espacos/components/ManageGestoresTab';
 import { useCreateEspaco, useGetSelectOptions, useUpdateEspaco } from '../services/espacoService';
 import { espacoFormSchema } from '../validation/espacoSchema';
 
@@ -252,12 +253,15 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
           </TabsContent>
 
           <TabsContent value="gestores" className="mt-4">
-            <h3 className="text-lg font-semibold">Gerenciar Gestores</h3>
-            <p className="text-sm text-muted-foreground">Adicione ou remova gestores associados a este espaço.</p>
-            {/* TODO: Implement a component here to list, add, and remove gestores */}
-            <div className="border rounded-lg p-4 mt-2 h-32 flex items-center justify-center">
-              (Interface de gerenciamento de gestores virá aqui)
-            </div>
+            {isEditMode && espaco
+              ? (
+                  <ManageGestoresTab espacoId={espaco.id} />
+                )
+              : (
+                  <p className="text-center text-muted-foreground p-4">
+                    Salve o espaço primeiro para poder adicionar gestores.
+                  </p>
+                )}
           </TabsContent>
 
           <TabsContent value="equipamentos" className="mt-4">
