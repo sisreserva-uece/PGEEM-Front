@@ -34,3 +34,31 @@ export type EspacoGestorLink = {
   gestor: Usuario;
   estaAtivo: boolean;
 };
+
+export enum EquipamentoStatus {
+  INATIVO = 0,
+  ATIVO = 1,
+  EM_MANUTENCAO = 2,
+}
+
+export type TipoEquipamento = {
+  id: string;
+  nome: string;
+  isDetalhamentoObrigatorio: boolean;
+};
+
+export type Equipamento = {
+  id: string;
+  tombamento: string | null;
+  descricao: string;
+  status: EquipamentoStatus;
+  tipoEquipamento: TipoEquipamento;
+};
+
+export type EquipamentoEspacoLink = {
+  id: string;
+  equipamento: Equipamento;
+  espaco: Espaco;
+  dataAlocacao: string;
+  dataRemocao: string | null;
+};

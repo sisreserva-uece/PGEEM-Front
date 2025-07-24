@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { ManageEquipamentosTab } from '@/features/espacos/components/ManageEquipamentosTab';
 import { ManageGestoresTab } from '@/features/espacos/components/ManageGestoresTab';
 import { useCreateEspaco, useGetSelectOptions, useUpdateEspaco } from '../services/espacoService';
 import { espacoFormSchema } from '../validation/espacoSchema';
@@ -265,12 +266,15 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
           </TabsContent>
 
           <TabsContent value="equipamentos" className="mt-4">
-            <h3 className="text-lg font-semibold">Gerenciar Equipamentos</h3>
-            <p className="text-sm text-muted-foreground">Adicione ou remova equipamentos neste espaço.</p>
-            {/* TODO: Implement a component here to list, add, and remove equipamentos */}
-            <div className="border rounded-lg p-4 mt-2 h-32 flex items-center justify-center">
-              (Interface de gerenciamento de equipamentos virá aqui)
-            </div>
+            {isEditMode && espaco
+              ? (
+                  <ManageEquipamentosTab espacoId={espaco.id} />
+                )
+              : (
+                  <p className="text-center text-muted-foreground p-4">
+                    Salve o espaço primeiro para poder adicionar equipamentos.
+                  </p>
+                )}
           </TabsContent>
 
           <div className="flex justify-end">
