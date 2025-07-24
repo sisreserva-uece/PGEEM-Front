@@ -187,3 +187,23 @@ export function useGetEquipamentosByTipo(tipoId: string) {
     enabled: !!tipoId,
   });
 }
+
+export function useBulkUnlinkEquipamentos() {
+  const queryClient = useQueryClient();
+  const usuarioId = useAuthStore.getState().user?.id;
+  return useMutation({
+    mutationFn: (data: { espacoId: string; equipamentoEspacoIds: string[] }) => {
+      if (!usuarioId) {
+        throw new Error('Usuário não autenticado.');
+      }
+      const payload = {
+        usuarioId,
+        equipamentoEspacoIds: data.equipamentoEspacoIds,
+      };
+      return apiClient.post('/equipamento/espaco/inativacoes', payload);
+    },
+    onSuccess: (_, variables) => {
+      return queryClient.invalidateQueries({ queryKey: equipamentoEspacoKeys.lists(variables.espacoId) });
+    },
+  });
+}

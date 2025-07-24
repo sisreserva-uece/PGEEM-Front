@@ -70,7 +70,6 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
           tipoEquipamentoId: link.item.tipoEquipamento.id,
         };
       }
-      // Generic
       return Array.from({ length: link.quantity }, () => ({
         tombamento: '',
         descricao: '',
@@ -78,11 +77,9 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
         tipoEquipamentoId: link.tipo.id,
       }));
     });
-
     if (payload.length === 0) {
       return toast.info('Nenhum item adicionado.');
     }
-
     toast.promise(linkMutation.mutateAsync({ espacoId, equipamentos: payload }), {
       loading: 'Vinculando...',
       success: () => {
@@ -124,8 +121,6 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
                 </div>
               </ScrollArea>
             </div>
-
-            {/* RIGHT COLUMN: Summary / "Shopping Cart" */}
             <div className="flex flex-col gap-2 overflow-hidden">
               <h3 className="font-semibold">
                 Itens a Adicionar
@@ -133,17 +128,12 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
               <ScrollArea className="flex-1 rounded-md border">
                 <div className="p-4 space-y-4">
                   {pendingLinks.length === 0 && <p className="text-sm text-center text-muted-foreground">Nenhum item na lista.</p>}
-
-                  {/* THIS IS THE FIX: Iterate over the new groupedPendingLinks */}
                   {groupedPendingLinks.map((group) => {
-                    // Calculate the total quantity for this group
                     const totalQuantity = group.items.reduce((sum, link) => {
                       return sum + (link.type === 'generic' ? link.quantity : 1);
                     }, 0);
-
                     return (
                       <div key={group.tipo.id}>
-                        {/* Group Header */}
                         <div className="flex justify-between items-center mb-2">
                           <h4 className="font-semibold text-sm">{group.tipo.nome}</h4>
                           <span className="text-sm font-bold text-muted-foreground">
@@ -152,8 +142,6 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
                             item(s)
                           </span>
                         </div>
-
-                        {/* List of items within the group */}
                         <div className="pl-4 space-y-1">
                           {group.items.map(link => (
                             <div key={link.id} className="flex items-center justify-between text-sm">
@@ -176,7 +164,6 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
               </ScrollArea>
             </div>
           </div>
-
           <DialogFooter>
             <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button onClick={handleLink} disabled={linkMutation.isPending || pendingLinks.length === 0}>
@@ -185,8 +172,6 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* SECONDARY DIALOGS */}
       {specificSelectionState.tipo && (
         <SelectSpecificEquipamentoDialog
           key={specificSelectionState.tipo.id}
@@ -201,7 +186,6 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
   );
 }
 
-// Helper component for generic quantity input
 function AddGenericButton({ onAdd }: { onAdd: (q: number) => void }) {
   const [quantity, setQuantity] = useState(1);
   return (

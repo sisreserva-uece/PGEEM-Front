@@ -1,7 +1,4 @@
-export type ApiSelectOption = {
-  id: string;
-  nome: string;
-};
+import type { ApiSelectOption } from '@/types/api';
 
 export type Espaco = {
   id: string;

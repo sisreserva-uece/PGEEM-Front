@@ -1,8 +1,11 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useDebounce } from '@/lib/hooks/useDebounce';
 import { useGetSelectOptions } from '../services/espacoService';
 
 type EspacosFilterBarProps = {
@@ -16,13 +19,32 @@ export function EspacosFilterBar({ filters, onFilterChange, isFetching }: Espaco
   const { data: localizacoes } = useGetSelectOptions('/localizacao', 'localizacoes');
   const { data: tiposEspaco } = useGetSelectOptions('/espaco/tipo', 'tiposEspaco');
   const { data: tiposAtividade } = useGetSelectOptions('/atividade/tipo', 'tiposAtividade');
+  const [nameFilter, setNameFilter] = useState(filters.nome || '');
+  const debouncedNameFilter = useDebounce(nameFilter, 500);
+  useEffect(() => {
+    if (debouncedNameFilter !== (filters.nome || '')) {
+      onFilterChange('nome', debouncedNameFilter);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedNameFilter]);
+  useEffect(() => {
+    if (!filters.nome) {
+      setNameFilter('');
+    }
+  }, [filters.nome]);
   const handleClearFilters = () => {
     onFilterChange('all', null);
   };
   const hasActiveFilters = Object.values(filters).some(Boolean);
   return (
     <div className="p-4 border rounded-lg space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Input
+          placeholder="Buscar por nome..."
+          value={nameFilter}
+          onChange={e => setNameFilter(e.target.value)}
+          disabled={isFetching}
+        />
         <Select
           onValueChange={value => onFilterChange('departamento', value)}
           value={filters.departamento || ''}

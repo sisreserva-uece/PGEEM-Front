@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddEquipamentoDialog } from '@/features/espacos/components/AddEquipamentoDialog';
-import { useGetLinkedEquipamentos, useUnlinkEquipamento } from '../services/espacoService';
+import { useBulkUnlinkEquipamentos, useGetLinkedEquipamentos, useUnlinkEquipamento } from '../services/espacoService';
 import { EquipamentoStatus } from '../types';
 
 type ManageEquipamentosTabProps = {
@@ -69,6 +69,7 @@ export function ManageEquipamentosTab({ espacoId }: ManageEquipamentosTabProps) 
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const { data: linkedEquipamentos, isLoading, isError } = useGetLinkedEquipamentos(espacoId);
   const unlinkMutation = useUnlinkEquipamento();
+  const bulkUnlinkMutation = useBulkUnlinkEquipamentos();
   const { specificItems, genericItemsGrouped, linkedSpecificIds } = useMemo(() => {
     const specific: any[] = [];
     const ids: string[] = [];
@@ -99,14 +100,23 @@ export function ManageEquipamentosTab({ espacoId }: ManageEquipamentosTabProps) 
       },
     );
   };
+
   const handleUnlinkGeneric = (itemsToUnlink: any[], quantity: number) => {
-    const promises = itemsToUnlink.slice(0, quantity).map(link =>
-      unlinkMutation.mutateAsync({ espacoId, equipamentoEspacoId: link.id }),
-    );
-    toast.promise(Promise.all(promises), {
-      loading: `Removendo ${quantity} item(s)...`,
-      success: 'Itens removidos com sucesso!',
-      error: 'Falha ao remover alguns itens.',
+    if (quantity <= 0 || !itemsToUnlink || itemsToUnlink.length === 0) {
+      return;
+    }
+    const actualQuantity = Math.min(quantity, itemsToUnlink.length);
+    const idsToUnlink = itemsToUnlink
+      .slice(0, actualQuantity)
+      .map(link => link.id);
+    const promise = bulkUnlinkMutation.mutateAsync({
+      espacoId,
+      equipamentoEspacoIds: idsToUnlink,
+    });
+    toast.promise(promise, {
+      loading: `Desvinculando ${actualQuantity} iten(s)...`,
+      success: 'Itens desvinculados com sucesso!',
+      error: 'Falha ao desvincular itens.',
     });
   };
 
