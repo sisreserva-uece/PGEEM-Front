@@ -62,7 +62,7 @@ export function DataTable<TData, TValue>({
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="bg-muted hover:bg-muted">
                 {headerGroup.headers.map(header => (
                   <TableHead key={header.id} className="whitespace-nowrap">
                     {header.isPlaceholder
@@ -99,7 +99,11 @@ export function DataTable<TData, TValue>({
                 : table.getRowModel().rows?.length
                   ? (
                       table.getRowModel().rows.map(row => (
-                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                        <TableRow
+                          key={row.id}
+                          data-state={row.getIsSelected() && 'selected'}
+                          className="bg-background even:bg-muted/40"
+                        >
                           {row.getVisibleCells().map(cell => (
                             <TableCell key={cell.id} className="whitespace-nowrap">
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}

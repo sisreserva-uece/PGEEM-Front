@@ -11,9 +11,9 @@ type FlatRoute = {
 function flattenRoutes(routes: RouteConfig[]): FlatRoute[] {
   const flatList: FlatRoute[] = [];
   for (const route of routes) {
-    if (route.href && route.href !== '#') {
+    if (route.path && route.path !== '#') {
       flatList.push({
-        path: route.href,
+        path: route.path,
         allowedRoles: route.allowedRoles,
       });
     }

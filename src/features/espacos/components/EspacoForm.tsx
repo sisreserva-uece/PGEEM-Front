@@ -1,4 +1,3 @@
-// C:\Users\rerse\WebstormProjects\PGEEM-Front\src\features\espacos\components\EspacoForm.tsx
 'use client';
 
 import type { z } from 'zod';
@@ -13,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { usePermissions } from '@/features/auth/hooks/usePermissions';
 import { ManageEquipamentosTab } from '@/features/espacos/components/ManageEquipamentosTab';
 import { ManageGestoresTab } from '@/features/espacos/components/ManageGestoresTab';
 import { useCreateEspaco, useGetSelectOptions, useUpdateEspaco } from '../services/espacoService';
@@ -53,6 +53,7 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
         }
       : initialValues,
   });
+  const { canEditGestores, canEditEquipamentos } = usePermissions('espacos');
   const { data: departamentos } = useGetSelectOptions('/departamento', 'departamentos');
   const { data: localizacoes } = useGetSelectOptions('/localizacao', 'localizacoes');
   const { data: tiposEspaco } = useGetSelectOptions('/espaco/tipo', 'tiposEspaco');
@@ -77,8 +78,18 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
     <Tabs defaultValue="dados-principais" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="dados-principais">Dados Principais</TabsTrigger>
-        <TabsTrigger value="gestores" disabled={!isEditMode}>Gestores</TabsTrigger>
-        <TabsTrigger value="equipamentos" disabled={!isEditMode}>Equipamentos</TabsTrigger>
+        <TabsTrigger
+          value="gestores"
+          disabled={!isEditMode || !canEditGestores}
+        >
+          Gestores
+        </TabsTrigger>
+        <TabsTrigger
+          value="equipamentos"
+          disabled={!isEditMode || !canEditEquipamentos}
+        >
+          Equipamentos
+        </TabsTrigger>
       </TabsList>
 
       <Form {...form}>

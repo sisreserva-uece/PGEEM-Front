@@ -41,7 +41,7 @@ export function ProtectedNavigation() {
                 const visibleSubItems = item.subItems?.filter(sub =>
                   hasAccess(sub.allowedRoles),
                 ) || [];
-                if (item.subItems && visibleSubItems.length > 0) {
+                if (visibleSubItems.length > 1) {
                   return (
                     <NavigationMenuItem key={item.title}>
                       <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
@@ -56,6 +56,16 @@ export function ProtectedNavigation() {
                           ))}
                         </ul>
                       </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  );
+                }
+                if (visibleSubItems.length === 1) {
+                  const singleItem = visibleSubItems[0];
+                  return (
+                    <NavigationMenuItem key={singleItem.title}>
+                      <NavigationMenuLink asChild>
+                        <Link href={singleItem.href}>{singleItem.title}</Link>
+                      </NavigationMenuLink>
                     </NavigationMenuItem>
                   );
                 }

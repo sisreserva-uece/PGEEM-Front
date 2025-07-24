@@ -1,3 +1,5 @@
+import type { Equipamento } from '@/features/equipamentos/types';
+import type { Usuario } from '@/features/usuarios/types';
 import type { ApiSelectOption } from '@/types/api';
 
 export type Espaco = {
@@ -12,44 +14,11 @@ export type Espaco = {
   tipoAtividade: ApiSelectOption;
 };
 
-export type Cargo = {
-  id: string;
-  nome: string;
-  descricao: string;
-};
-
-export type Usuario = {
-  id: string;
-  nome: string;
-  email: string;
-  cargos: Cargo[];
-};
-
 export type EspacoGestorLink = {
   id: string;
   espaco: Espaco;
   gestor: Usuario;
   estaAtivo: boolean;
-};
-
-export enum EquipamentoStatus {
-  INATIVO = 0,
-  ATIVO = 1,
-  EM_MANUTENCAO = 2,
-}
-
-export type TipoEquipamento = {
-  id: string;
-  nome: string;
-  isDetalhamentoObrigatorio: boolean;
-};
-
-export type Equipamento = {
-  id: string;
-  tombamento: string | null;
-  descricao: string;
-  status: EquipamentoStatus;
-  tipoEquipamento: TipoEquipamento;
 };
 
 export type EquipamentoEspacoLink = {

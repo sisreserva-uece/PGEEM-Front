@@ -1,11 +1,8 @@
 'use client';
 
-import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useDebounce } from '@/lib/hooks/useDebounce';
+import { DebouncedInput } from '@/components/ui/debounced-input';
+import { FilterBarContainer } from '@/components/ui/filter-bar-container';
+import { FilterSelect } from '@/components/ui/filter-select'; // <-- Import the new component
 import { useGetSelectOptions } from '../services/espacoService';
 
 type EspacosFilterBarProps = {
@@ -19,99 +16,53 @@ export function EspacosFilterBar({ filters, onFilterChange, isFetching }: Espaco
   const { data: localizacoes } = useGetSelectOptions('/localizacao', 'localizacoes');
   const { data: tiposEspaco } = useGetSelectOptions('/espaco/tipo', 'tiposEspaco');
   const { data: tiposAtividade } = useGetSelectOptions('/atividade/tipo', 'tiposAtividade');
-  const [nameFilter, setNameFilter] = useState(filters.nome || '');
-  const debouncedNameFilter = useDebounce(nameFilter, 500);
-  useEffect(() => {
-    if (debouncedNameFilter !== (filters.nome || '')) {
-      onFilterChange('nome', debouncedNameFilter);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedNameFilter]);
-  useEffect(() => {
-    if (!filters.nome) {
-      setNameFilter('');
-    }
-  }, [filters.nome]);
-  const handleClearFilters = () => {
+
+  const handleClear = () => {
     onFilterChange('all', null);
   };
-  const hasActiveFilters = Object.values(filters).some(Boolean);
+
   return (
-    <div className="p-4 border rounded-lg space-y-4">
+    <FilterBarContainer activeFilters={filters} onClear={handleClear} isFetching={isFetching}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Input
+        <DebouncedInput
           placeholder="Buscar por nome..."
-          value={nameFilter}
-          onChange={e => setNameFilter(e.target.value)}
+          value={filters.nome || ''}
+          onDebouncedChange={value => onFilterChange('nome', value)}
           disabled={isFetching}
         />
-        <Select
-          onValueChange={value => onFilterChange('departamento', value)}
+        <FilterSelect
+          placeholder="Filtrar por Departamento"
+          options={departamentos}
           value={filters.departamento || ''}
+          onValueChange={value => onFilterChange('departamento', value)}
           disabled={isFetching}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Filtrar por Departamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {departamentos?.map(dep => (
-              <SelectItem key={dep.id} value={dep.id}>{dep.nome}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          onValueChange={value => onFilterChange('localizacao', value)}
+          allOptionLabel="Todos"
+        />
+        <FilterSelect
+          placeholder="Filtrar por Localização"
+          options={localizacoes}
           value={filters.localizacao || ''}
+          onValueChange={value => onFilterChange('localizacao', value)}
           disabled={isFetching}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Filtrar por Localização" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {localizacoes?.map(loc => (
-              <SelectItem key={loc.id} value={loc.id}>{loc.nome}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          onValueChange={value => onFilterChange('tipoEspaco', value)}
+          allOptionLabel="Todos"
+        />
+        <FilterSelect
+          placeholder="Filtrar por Tipo de Espaço"
+          options={tiposEspaco}
           value={filters.tipoEspaco || ''}
+          onValueChange={value => onFilterChange('tipoEspaco', value)}
           disabled={isFetching}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Filtrar por Tipo de Espaço" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {tiposEspaco?.map(tipo => (
-              <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          onValueChange={value => onFilterChange('tipoAtividade', value)}
+          allOptionLabel="Todos"
+        />
+        <FilterSelect
+          placeholder="Filtrar por Tipo de Atividade"
+          options={tiposAtividade}
           value={filters.tipoAtividade || ''}
+          onValueChange={value => onFilterChange('tipoAtividade', value)}
           disabled={isFetching}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Filtrar por Tipo de Atividade" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {tiposAtividade?.map(tipo => (
-              <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          allOptionLabel="Todos"
+        />
       </div>
-      {hasActiveFilters && (
-        <Button variant="ghost" onClick={handleClearFilters} className="text-sm text-muted-foreground">
-          <X className="mr-2 h-4 w-4" />
-          Limpar Filtros
-        </Button>
-      )}
-    </div>
+    </FilterBarContainer>
   );
 }
