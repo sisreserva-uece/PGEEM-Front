@@ -1,13 +1,13 @@
 'use client';
 
-import type { Equipamento, TipoEquipamento } from '../types';
+import type { Equipamento, TipoEquipamento } from '@/features/equipamentos/types';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useGetEquipamentosByTipo } from '../services/espacoService';
+import { useGetEquipamentosByTipo } from '@/features/equipamentos/services/equipamentoService';
 
 type Props = {
   open: boolean;
@@ -20,14 +20,11 @@ type Props = {
 export function SelectSpecificEquipamentoDialog({ open, onOpenChange, tipo, linkedSpecificIds, onConfirm }: Props) {
   const { data: items, isLoading } = useGetEquipamentosByTipo(tipo.id);
   const [selection, setSelection] = useState<Map<string, Equipamento>>(new Map());
-
   const availableItems = items?.filter(item => !linkedSpecificIds.includes(item.id)) ?? [];
-
   const handleConfirm = () => {
     onConfirm(Array.from(selection.values()));
     onOpenChange(false);
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg h-[70vh] flex flex-col">

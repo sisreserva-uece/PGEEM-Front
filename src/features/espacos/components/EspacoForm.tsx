@@ -1,8 +1,9 @@
 'use client';
 
 import type { z } from 'zod';
-import type { Espaco } from '../types';
+import type { Espaco } from '@/features/espacos/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Info } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ import { espacoFormSchema } from '../validation/espacoSchema';
 type EspacoFormData = z.infer<typeof espacoFormSchema>;
 
 type EspacoFormProps = {
-  espaco?: Espaco | null;
+  entity?: Espaco | null;
   onSuccess: () => void;
 };
 
@@ -36,7 +37,7 @@ const initialValues: EspacoFormData = {
   precisaProjeto: false,
 };
 
-export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
+export function EspacoForm({ entity: espaco, onSuccess }: EspacoFormProps) {
   const isEditMode = !!espaco;
   const form = useForm<EspacoFormData>({
     resolver: zodResolver(espacoFormSchema),
@@ -60,9 +61,16 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
   const { data: tiposAtividade } = useGetSelectOptions('/atividade/tipo', 'tiposAtividade');
   const createMutation = useCreateEspaco();
   const updateMutation = useUpdateEspaco();
+
   const onSubmit = (values: EspacoFormData) => {
     const promise = isEditMode
-      ? updateMutation.mutateAsync({ id: espaco.id, ...values })
+      ? updateMutation.mutateAsync({
+          id: espaco.id,
+          nome: values.nome,
+          urlCnpq: values.urlCnpq,
+          observacao: values.observacao,
+          precisaProjeto: values.precisaProjeto,
+        })
       : createMutation.mutateAsync(values);
     toast.promise(promise, {
       loading: `${isEditMode ? 'Atualizando' : 'Criando'} espaço...`,
@@ -73,33 +81,18 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
       error: err => `Erro ao ${isEditMode ? 'atualizar' : 'criar'} espaço: ${err.message}`,
     });
   };
+
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
   return (
     <Tabs defaultValue="dados-principais" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="dados-principais">Dados Principais</TabsTrigger>
-        <TabsTrigger
-          value="gestores"
-          disabled={!isEditMode || !canEditGestores}
-        >
-          Gestores
-        </TabsTrigger>
-        <TabsTrigger
-          value="equipamentos"
-          disabled={!isEditMode || !canEditEquipamentos}
-        >
-          Equipamentos
-        </TabsTrigger>
+        <TabsTrigger value="gestores" disabled={!isEditMode || !canEditGestores}>Gestores</TabsTrigger>
+        <TabsTrigger value="equipamentos" disabled={!isEditMode || !canEditEquipamentos}>Equipamentos</TabsTrigger>
       </TabsList>
 
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(async (values) => {
-            onSubmit(values);
-            onSuccess();
-          })}
-          className="space-y-8"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <TabsContent value="dados-principais" className="mt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8">
               <div className="sm:col-span-2">
@@ -123,7 +116,7 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Departamento</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione um departamento" />
@@ -146,7 +139,7 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Localização</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione uma localização" />
@@ -169,7 +162,7 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo de Espaço</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione um tipo de espaço" />
@@ -192,7 +185,7 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo de Atividade Principal</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione um tipo de atividade" />
@@ -208,7 +201,14 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
                   </FormItem>
                 )}
               />
-
+              {isEditMode && (
+                <div className="sm:col-span-2 flex items-start gap-2.5 text-red-700 border border-red-200 bg-red-50 p-3 rounded-md">
+                  <Info className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-xs font-medium">
+                    Os campos de relacionamento (Departamento, Localização, etc.) são definidos na criação e não podem ser alterados posteriormente.
+                  </p>
+                </div>
+              )}
               <div className="sm:col-span-2">
                 <FormField
                   control={form.control}
@@ -224,7 +224,6 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
                   )}
                 />
               </div>
-
               <div className="sm:col-span-2">
                 <FormField
                   control={form.control}
@@ -240,7 +239,6 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
                   )}
                 />
               </div>
-
               <div className="sm:col-span-2">
                 <FormField
                   control={form.control}
@@ -260,34 +258,14 @@ export function EspacoForm({ espaco, onSuccess }: EspacoFormProps) {
                   )}
                 />
               </div>
-
             </div>
           </TabsContent>
-
           <TabsContent value="gestores" className="mt-4">
-            {isEditMode && espaco
-              ? (
-                  <ManageGestoresTab espacoId={espaco.id} />
-                )
-              : (
-                  <p className="text-center text-muted-foreground p-4">
-                    Salve o espaço primeiro para poder adicionar gestores.
-                  </p>
-                )}
+            {isEditMode && espaco ? <ManageGestoresTab espacoId={espaco.id} /> : <p className="text-center text-muted-foreground p-4">Salve o espaço primeiro para poder adicionar gestores.</p>}
           </TabsContent>
-
           <TabsContent value="equipamentos" className="mt-4">
-            {isEditMode && espaco
-              ? (
-                  <ManageEquipamentosTab espacoId={espaco.id} />
-                )
-              : (
-                  <p className="text-center text-muted-foreground p-4">
-                    Salve o espaço primeiro para poder adicionar equipamentos.
-                  </p>
-                )}
+            {isEditMode && espaco ? <ManageEquipamentosTab espacoId={espaco.id} /> : <p className="text-center text-muted-foreground p-4">Salve o espaço primeiro para poder adicionar equipamentos.</p>}
           </TabsContent>
-
           <div className="flex justify-end">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}

@@ -1,8 +1,10 @@
 'use client';
 
 import type { Equipamento } from '../types';
-import type { EquipamentoFormValues } from '../validation/equipamentoSchema';
+import type { EquipamentoCreatePayload } from '../validation/equipamentoSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Info } from 'lucide-react';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -10,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useCreateEquipamento, useGetTiposEquipamento, useUpdateEquipamento } from '../services/equipamentoService';
+import { useCreateEquipamento, useGetAllTiposEquipamento, useUpdateEquipamento } from '../services/equipamentoService';
 import { EquipamentoStatus } from '../types';
 import { equipamentoSchema } from '../validation/equipamentoSchema';
 
@@ -21,9 +23,8 @@ type EquipamentoFormProps = {
 
 export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoFormProps) {
   const isEditMode = !!equipamento;
-  const { data: tiposData } = useGetTiposEquipamento({ todos: true });
-
-  const form = useForm<EquipamentoFormValues>({
+  const { data: allTiposData } = useGetAllTiposEquipamento();
+  const form = useForm<EquipamentoCreatePayload>({
     resolver: zodResolver(equipamentoSchema),
     defaultValues: isEditMode
       ? {
@@ -34,16 +35,23 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
         }
       : { tombamento: '', descricao: '', status: EquipamentoStatus.ATIVO, tipoEquipamentoId: '' },
   });
-
+  const nonGenericTipos = useMemo(() => {
+    if (!allTiposData) {
+      return [];
+    }
+    return allTiposData.filter(tipo => tipo.isDetalhamentoObrigatorio);
+  }, [allTiposData]);
   const createMutation = useCreateEquipamento();
   const updateMutation = useUpdateEquipamento();
   const isLoading = createMutation.isPending || updateMutation.isPending;
-
-  const onSubmit = (values: EquipamentoFormValues) => {
+  const onSubmit = (values: EquipamentoCreatePayload) => {
     const promise = isEditMode
-      ? updateMutation.mutateAsync({ id: equipamento.id, ...values })
+      ? updateMutation.mutateAsync({
+          id: equipamento.id,
+          descricao: values.descricao,
+          status: values.status,
+        })
       : createMutation.mutateAsync(values);
-
     toast.promise(promise, {
       loading: `${isEditMode ? 'Atualizando' : 'Criando'} equipamento...`,
       success: () => {
@@ -53,7 +61,6 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
       error: err => `Erro ao salvar equipamento: ${err.message}`,
     });
   };
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -64,7 +71,7 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tombamento</FormLabel>
-                <FormControl><Input placeholder="Ex: 123456-ABC" {...field} /></FormControl>
+                <FormControl><Input placeholder="Ex: 123456-ABC" {...field} disabled={isEditMode} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -75,10 +82,10 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tipo de Equipamento</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Selecione um tipo" /></SelectTrigger></FormControl>
                   <SelectContent>
-                    {tiposData?.content?.map(tipo => (
+                    {nonGenericTipos.map(tipo => (
                       <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome}</SelectItem>
                     ))}
                   </SelectContent>
@@ -87,6 +94,14 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
               </FormItem>
             )}
           />
+          {isEditMode && (
+            <div className="sm:col-span-2 flex items-start gap-2.5 text-red-700 border border-red-200 bg-red-50 p-3 rounded-md">
+              <Info className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <p className="text-xs font-medium">
+                O Tombamento e o Tipo de Equipamento são definidos na criação e não podem ser alterados.
+              </p>
+            </div>
+          )}
           <div className="sm:col-span-2">
             <FormField
               control={form.control}

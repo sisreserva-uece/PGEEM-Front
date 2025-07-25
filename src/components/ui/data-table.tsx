@@ -1,11 +1,12 @@
 'use client';
 
-import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
+import type {
+  ColumnDef,
+  PaginationState,
+  SortingState,
 } from '@tanstack/react-table';
+import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
+
 import * as React from 'react';
 import {
   Table,
@@ -28,6 +29,8 @@ type DataTableProps<TData, TValue> = {
   onSortingChange: React.Dispatch<React.SetStateAction<SortingState>>;
   isLoading?: boolean;
   isError?: boolean;
+  manualPagination?: boolean;
+  manualSorting?: boolean;
 };
 
 export function DataTable<TData, TValue>({
@@ -40,6 +43,8 @@ export function DataTable<TData, TValue>({
   onSortingChange,
   isLoading = false,
   isError = false,
+  manualPagination: manualPaginationProp = true,
+  manualSorting: manualSortingProp = true,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -49,11 +54,14 @@ export function DataTable<TData, TValue>({
       pagination,
       sorting,
     },
-    manualPagination: true,
-    manualSorting: true,
+    manualPagination: manualPaginationProp,
+    manualSorting: manualSortingProp,
     onPaginationChange,
     onSortingChange,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   });
 
   return (

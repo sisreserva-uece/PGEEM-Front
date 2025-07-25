@@ -12,7 +12,7 @@ export function useSignUp() {
       const requestData: SignUpRequest = {
         ...data,
         cargosNome: [data.cargosNome],
-        instituicaoId: '9a379f24-abe3-49a4-b8fd-1d8a9149f3d1',
+        instituicaoId: process.env.NEXT_PUBLIC_DEFAULT_INSTITUICAO_ID as string,
         refreshTokenEnabled: true,
       };
       return authService.signUp(requestData);

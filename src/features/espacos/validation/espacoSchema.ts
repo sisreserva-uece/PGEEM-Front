@@ -10,3 +10,14 @@ export const espacoFormSchema = z.object({
   tipoAtividadeId: z.string().uuid({ message: 'Tipo de Atividade é obrigatório.' }),
   precisaProjeto: z.boolean(),
 });
+
+export const espacoUpdateSchema = espacoFormSchema.pick({
+  nome: true,
+  urlCnpq: true,
+  observacao: true,
+  precisaProjeto: true,
+});
+
+export type EspacoCreatePayload = z.infer<typeof espacoFormSchema>;
+
+export type EspacoUpdatePayload = z.infer<typeof espacoUpdateSchema>;

@@ -3,14 +3,14 @@
 import type { SortingState } from '@tanstack/react-table';
 import type { Espaco } from '../types';
 import { PlusCircle, RefreshCw } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { MasterDetailSheet } from '@/components/ui/master-detail-sheet';
 import { usePermissions } from '@/features/auth/hooks/usePermissions';
 import { EspacoForm } from '@/features/espacos/components/EspacoForm';
-import { EspacoView } from '@/features/espacos/components/EspacoView';
+import { EspacoMainDataView, EspacoRelationsView } from '@/features/espacos/components/EspacoView';
+import { useUrlTrigger } from '@/lib/hooks/useUrlTrigger';
 import { useGetEspacos } from '../services/espacoService';
 import { getColumns } from './EspacosColumns';
 import { EspacosFilterBar } from './EspacosFilterBar';
@@ -19,8 +19,6 @@ export function EspacosPageClient() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<'view' | 'edit'>('edit');
   const [selectedEspaco, setSelectedEspaco] = useState<Espaco | null>(null);
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [sorting, setSorting] = useState<SortingState>([{ id: 'nome', desc: false }]);
   const [pagination, setPagination] = useState({
@@ -51,6 +49,7 @@ export function EspacosPageClient() {
     sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
     ...filters,
   });
+  const [openId, clearOpenId] = useUrlTrigger('open');
   const handleCreate = () => {
     setSelectedEspaco(null);
     setSheetMode('edit');
@@ -70,19 +69,14 @@ export function EspacosPageClient() {
   const pageCount = data?.totalPages ?? 0;
   const isDataLoading = isLoading || isFetching;
   useEffect(() => {
-    const openId = searchParams.get('open');
     if (openId && data?.content) {
       const entityToOpen = data.content.find(item => item.id === openId);
       if (entityToOpen) {
-        setSelectedEspaco(entityToOpen);
-        setSheetMode('view');
-        setSheetOpen(true);
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.delete('open');
-        router.replace(`/dashboard/espacos?${newParams.toString()}`, { scroll: false });
+        handleView(entityToOpen);
+        clearOpenId();
       }
     }
-  }, [searchParams, data, router]);
+  }, [openId, data?.content, clearOpenId]);
   return (
     <div className="h-full flex-1 flex-col space-y-8 p-4 md:p-8 md:flex">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
@@ -130,8 +124,9 @@ export function EspacosPageClient() {
           entityName="Espaço"
           initialMode={sheetMode}
           canEdit={permissions.canEdit}
-          ViewComponent={EspacoView}
           FormComponent={EspacoForm}
+          MainDataViewComponent={EspacoMainDataView}
+          RelationsViewComponent={EspacoRelationsView}
         />
       )}
     </div>

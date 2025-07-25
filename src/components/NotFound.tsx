@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { useRouter } from '@/lib/i18nNavigation';
 
 export function NotFound() {
   const router = useRouter();

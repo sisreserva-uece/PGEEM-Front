@@ -17,9 +17,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useUnlinkEquipamentosFromEspaco } from '@/features/equipamentos/services/equipamentoService';
+import { EquipamentoStatus } from '@/features/equipamentos/types';
 import { AddEquipamentoDialog } from '@/features/espacos/components/AddEquipamentoDialog';
-import { useBulkUnlinkEquipamentos, useGetLinkedEquipamentos, useUnlinkEquipamento } from '../services/espacoService';
-import { EquipamentoStatus } from '../types';
+import { useGetLinkedEquipamentos } from '../services/espacoService';
 
 type ManageEquipamentosTabProps = {
   espacoId: string;
@@ -68,8 +69,7 @@ const getStatusInfo = (status: EquipamentoStatus) => {
 export function ManageEquipamentosTab({ espacoId }: ManageEquipamentosTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const { data: linkedEquipamentos, isLoading, isError } = useGetLinkedEquipamentos(espacoId);
-  const unlinkMutation = useUnlinkEquipamento();
-  const bulkUnlinkMutation = useBulkUnlinkEquipamentos();
+  const unlinkMutation = useUnlinkEquipamentosFromEspaco();
   const { specificItems, genericItemsGrouped, linkedSpecificIds } = useMemo(() => {
     const specific: any[] = [];
     const ids: string[] = [];
@@ -90,9 +90,13 @@ export function ManageEquipamentosTab({ espacoId }: ManageEquipamentosTabProps) 
     });
     return { specificItems: specific, genericItemsGrouped: Array.from(genericMap.entries()), linkedSpecificIds: ids };
   }, [linkedEquipamentos]);
-  const handleUnlinkSpecific = (equipamentoEspacoId: string) => {
+  const handleUnlinkSpecific = (link: any) => { // Pass the whole link object
     toast.promise(
-      unlinkMutation.mutateAsync({ espacoId, equipamentoEspacoId }),
+      unlinkMutation.mutateAsync({
+        equipamentoEspacoIds: [link.id],
+        espacoId,
+        equipamentoIds: [link.equipamento.id],
+      }),
       {
         loading: 'Desvinculando equipamento...',
         success: 'Equipamento desvinculado com sucesso!',
@@ -105,16 +109,16 @@ export function ManageEquipamentosTab({ espacoId }: ManageEquipamentosTabProps) 
     if (quantity <= 0 || !itemsToUnlink || itemsToUnlink.length === 0) {
       return;
     }
-    const actualQuantity = Math.min(quantity, itemsToUnlink.length);
-    const idsToUnlink = itemsToUnlink
-      .slice(0, actualQuantity)
-      .map(link => link.id);
-    const promise = bulkUnlinkMutation.mutateAsync({
+    const actualItems = itemsToUnlink.slice(0, Math.min(quantity, itemsToUnlink.length));
+    const idsToUnlink = actualItems.map(link => link.id);
+    const equipamentoIds = actualItems.map(link => link.equipamento.id);
+    const promise = unlinkMutation.mutateAsync({
       espacoId,
       equipamentoEspacoIds: idsToUnlink,
+      equipamentoIds,
     });
     toast.promise(promise, {
-      loading: `Desvinculando ${actualQuantity} iten(s)...`,
+      loading: `Desvinculando ${quantity} item(s)...`,
       success: 'Itens desvinculados com sucesso!',
       error: 'Falha ao desvincular itens.',
     });
@@ -159,7 +163,7 @@ export function ManageEquipamentosTab({ espacoId }: ManageEquipamentosTabProps) 
                   <p className="text-sm text-muted-foreground">{link.equipamento.descricao}</p>
                 </div>
               </div>
-              <Button type="button" variant="ghost" size="icon" onClick={() => handleUnlinkSpecific(link.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+              <Button type="button" variant="ghost" size="icon" onClick={() => handleUnlinkSpecific(link)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
             </div>
           );
         })}
@@ -189,7 +193,6 @@ export function ManageEquipamentosTab({ espacoId }: ManageEquipamentosTabProps) 
       </div>
       {isAddDialogOpen && (
         <AddEquipamentoDialog
-          key={new Date().getTime()}
           open={isAddDialogOpen}
           onOpenChange={setAddDialogOpen}
           espacoId={espacoId}
