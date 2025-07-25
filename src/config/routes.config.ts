@@ -53,4 +53,10 @@ export const routesConfig: RouteConfig[] = [
     path: '/dashboard/projetos',
     allowedRoles: ['ADMIN', 'PROFESSOR', 'PESQUISADOR'],
   },
+  {
+    title: 'Reservas',
+    href: '/dashboard/reservas',
+    path: '/dashboard/reservas',
+    allowedRoles: ['ADMIN', 'PROFESSOR', 'PESQUISADOR'],
+  },
 ];

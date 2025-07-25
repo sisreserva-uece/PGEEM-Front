@@ -12,6 +12,7 @@ export const {
   useGet: useGetEspacos,
   useCreate: useCreateEspaco,
   useUpdate: useUpdateEspaco,
+  useGetById: useGetEspacoById,
 } = createCrudHooks<Espaco, EspacoCreatePayload, EspacoUpdatePayload>('espaco');
 
 const espacoGestorKeys = {
@@ -116,5 +117,13 @@ export function useGetLinkedEquipamentos(espacoId: string) {
     queryKey: equipamentoEspacoKeys.lists(espacoId),
     queryFn: () => fetchAllPaginated('/equipamento/espaco', { espacoId }),
     enabled: !!espacoId,
+  });
+}
+
+export function useGetAllEspacos() {
+  return useQuery({
+    queryKey: ['allEspacos'],
+    queryFn: () => fetchAllPaginated<Espaco>('espaco', {}),
+    staleTime: 1000 * 60 * 5, // Cache for 5 mins
   });
 }

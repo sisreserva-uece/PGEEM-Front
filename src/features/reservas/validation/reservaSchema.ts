@@ -1,0 +1,19 @@
+import { z } from 'zod';
+
+export const reservaFormSchema = z.object({
+  dataInicio: z.date({ required_error: 'A data de início é obrigatória.' }),
+  dataFim: z.date({ required_error: 'A data de fim é obrigatória.' }),
+  projetoId: z.string().uuid().optional(),
+}).refine(data => data.dataFim > data.dataInicio, {
+  message: 'A data/hora de fim deve ser posterior à de início.',
+  path: ['dataFim'],
+});
+
+export type ReservaFormValues = z.infer<typeof reservaFormSchema>;
+export type ReservaCreatePayload = Omit<ReservaFormValues, 'dataInicio' | 'dataFim'> & {
+  dataInicio: string; // ISO DateTime string
+  dataFim: string; // ISO DateTime string
+  espacoId: string;
+  usuarioSolicitanteId: string;
+  status: 0;
+};

@@ -5,4 +5,5 @@ import { createCrudHooks } from '@/lib/hooks/useCrud';
 export const {
   useGet: useGetProjetos,
   useCreate: useCreateProjeto,
+  useGetById: useGetProjetoById,
 } = createCrudHooks<Projeto, ProjetoCreatePayload>('projeto');

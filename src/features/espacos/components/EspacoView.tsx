@@ -1,12 +1,14 @@
 'use client';
 
 import type { Espaco } from '../types';
-import { AlertTriangle, HardDrive, ShieldCheck, User, Wrench, XCircle } from 'lucide-react';
+import { AlertTriangle, CalendarPlus, HardDrive, ShieldCheck, User, Wrench, XCircle } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { RelatedItemLink } from '@/components/ui/related-item-link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { InfoItem } from '@/features/equipamentos/components/EquipamentoView';
 import { EquipamentoStatus } from '@/features/equipamentos/types';
 import { useGetEspacoGestores, useGetLinkedEquipamentos } from '../services/espacoService';
@@ -35,7 +37,13 @@ export function EspacoMainDataView({ entity: espaco }: { entity: Espaco }) {
   );
 }
 
-export function EspacoRelationsView({ entity: espaco }: { entity: Espaco }) {
+type EspacoRelationsViewProps = {
+  entity: Espaco;
+  onSolicitarReserva: (espaco: Espaco) => void;
+};
+
+export function EspacoRelationsView({ entity: espaco, onSolicitarReserva }: EspacoRelationsViewProps) {
+  const access = useUserAccess();
   const { data: gestorLinks, isLoading: isLoadingGestores } = useGetEspacoGestores(espaco.id);
   const { data: equipamentoLinks, isLoading: isLoadingEquipamentos } = useGetLinkedEquipamentos(espaco.id);
   const { specificItems, genericItemsGrouped } = useMemo(() => {
@@ -57,83 +65,93 @@ export function EspacoRelationsView({ entity: espaco }: { entity: Espaco }) {
   }, [equipamentoLinks]);
   const activeGestores = gestorLinks?.filter(link => link.estaAtivo) ?? [];
   return (
-    <Tabs defaultValue="gestores" className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="gestores">
-          Gestores (
-          {isLoadingGestores ? '...' : activeGestores.length}
-          )
-        </TabsTrigger>
-        <TabsTrigger value="equipamentos">
-          Equipamentos (
-          {isLoadingEquipamentos ? '...' : equipamentoLinks?.length ?? 0}
-          )
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value="gestores" className="mt-4">
-        <div className="space-y-2 rounded-lg border p-2 min-h-[100px]">
-          {isLoadingGestores
-            ? <Skeleton className="h-12 w-full" />
-            : activeGestores.length > 0
-              ? (
-                  activeGestores.map(link => (
-                    <div key={link.id} className="flex items-center gap-3 p-2">
-                      <User className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium text-sm">{link.gestor.nome}</p>
-                        <p className="text-xs text-muted-foreground">{link.gestor.email}</p>
-                      </div>
-                    </div>
-                  ))
-                )
-              : <p className="text-center text-sm text-muted-foreground p-4">Nenhum gestor vinculado.</p>}
+    <>
+      {access.canMakeReservation && (
+        <div className="my-4">
+          <Button className="w-full" onClick={() => onSolicitarReserva(espaco)}>
+            <CalendarPlus className="mr-2 h-4 w-4" />
+            Solicitar Reserva
+          </Button>
         </div>
-      </TabsContent>
-      <TabsContent value="equipamentos" className="mt-4">
-        <div className="space-y-4 rounded-lg border p-4 min-h-[100px]">
-          {isLoadingEquipamentos
-            ? <Skeleton className="h-20 w-full" />
-            : (equipamentoLinks?.length ?? 0) > 0
+      )}
+      <Tabs defaultValue="gestores" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="gestores">
+            Gestores (
+            {isLoadingGestores ? '...' : activeGestores.length}
+            )
+          </TabsTrigger>
+          <TabsTrigger value="equipamentos">
+            Equipamentos (
+            {isLoadingEquipamentos ? '...' : equipamentoLinks?.length ?? 0}
+            )
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="gestores" className="mt-4">
+          <div className="space-y-2 rounded-lg border p-2 min-h-[100px]">
+            {isLoadingGestores
+              ? <Skeleton className="h-12 w-full" />
+              : activeGestores.length > 0
                 ? (
-                    <>
-                      {specificItems.map((link) => {
-                        const statusInfo = getStatusInfo(link.equipamento.status);
-                        const Icon = statusInfo.icon;
-                        return (
-                          <RelatedItemLink
-                            key={link.id}
-                            href={`/dashboard/equipamentos?open=${link.equipamento.id}`}
-                            icon={<HardDrive className="h-5 w-5 text-muted-foreground" />}
-                            title={link.equipamento.tombamento}
-                            description={link.equipamento.descricao}
-                            asideContent={(
-                              <Badge className={`${statusInfo.color} text-white hover:${statusInfo.color} flex items-center gap-1 text-xs`}>
-                                <Icon className="h-3 w-3" />
-                                <span>{statusInfo.text}</span>
-                              </Badge>
-                            )}
-                          />
-                        );
-                      })}
-                      {genericItemsGrouped.map((group, index) => (
-                        <div key={index} className="flex items-center gap-3">
-                          <HardDrive className="h-5 w-5 text-muted-foreground opacity-60" />
-                          <div>
-                            <p className="font-medium text-sm">
-                              {group.count}
-                              x
-                              {' '}
-                              {group.items[0].equipamento.tipoEquipamento.nome}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Item genérico</p>
-                          </div>
+                    activeGestores.map(link => (
+                      <div key={link.id} className="flex items-center gap-3 p-2">
+                        <User className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium text-sm">{link.gestor.nome}</p>
+                          <p className="text-xs text-muted-foreground">{link.gestor.email}</p>
                         </div>
-                      ))}
-                    </>
+                      </div>
+                    ))
                   )
-                : <p className="text-center text-sm text-muted-foreground p-4">Nenhum equipamento vinculado.</p>}
-        </div>
-      </TabsContent>
-    </Tabs>
+                : <p className="text-center text-sm text-muted-foreground p-4">Nenhum gestor vinculado.</p>}
+          </div>
+        </TabsContent>
+        <TabsContent value="equipamentos" className="mt-4">
+          <div className="space-y-4 rounded-lg border p-4 min-h-[100px]">
+            {isLoadingEquipamentos
+              ? <Skeleton className="h-20 w-full" />
+              : (equipamentoLinks?.length ?? 0) > 0
+                  ? (
+                      <>
+                        {specificItems.map((link) => {
+                          const statusInfo = getStatusInfo(link.equipamento.status);
+                          const Icon = statusInfo.icon;
+                          return (
+                            <RelatedItemLink
+                              key={link.id}
+                              href={`/dashboard/equipamentos?open=${link.equipamento.id}`}
+                              icon={<HardDrive className="h-5 w-5 text-muted-foreground" />}
+                              title={link.equipamento.tombamento}
+                              description={link.equipamento.descricao}
+                              asideContent={(
+                                <Badge className={`${statusInfo.color} text-white hover:${statusInfo.color} flex items-center gap-1 text-xs`}>
+                                  <Icon className="h-3 w-3" />
+                                  <span>{statusInfo.text}</span>
+                                </Badge>
+                              )}
+                            />
+                          );
+                        })}
+                        {genericItemsGrouped.map((group, index) => (
+                          <div key={index} className="flex items-center gap-3">
+                            <HardDrive className="h-5 w-5 text-muted-foreground opacity-60" />
+                            <div>
+                              <p className="font-medium text-sm">
+                                {group.count}
+                                x
+                                {' '}
+                                {group.items[0].equipamento.tipoEquipamento.nome}
+                              </p>
+                              <p className="text-xs text-muted-foreground">Item genérico</p>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )
+                  : <p className="text-center text-sm text-muted-foreground p-4">Nenhum equipamento vinculado.</p>}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </>
   );
 }

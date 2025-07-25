@@ -46,6 +46,9 @@ export const useUserAccess = (espaco?: Espaco | null) => {
 
     // Usuarios
     canManageUsuarios: hasGlobalRole(['ADMIN']),
+
+    // Reservas
+    canMakeReservation: hasGlobalRole(['ADMIN', 'PROFESSOR', 'PESQUISADOR']),
   }), [isLoadingManagedEspacos, isGestorOfAnyEspaco, isGestorOfCurrentEspaco, userRoles]);
 
   return access;

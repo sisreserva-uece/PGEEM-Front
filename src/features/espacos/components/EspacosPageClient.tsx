@@ -10,6 +10,7 @@ import { MasterDetailSheet } from '@/components/ui/master-detail-sheet';
 import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { EspacoForm } from '@/features/espacos/components/EspacoForm';
 import { EspacoMainDataView, EspacoRelationsView } from '@/features/espacos/components/EspacoView';
+import { SolicitarReservaDialog } from '@/features/reservas/components/SolicitarReservaDialog';
 import { useUrlTrigger } from '@/lib/hooks/useUrlTrigger';
 import { useGetEspacos } from '../services/espacoService';
 import { getColumns } from './EspacosColumns';
@@ -18,6 +19,7 @@ import { EspacosFilterBar } from './EspacosFilterBar';
 export function EspacosPageClient() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<'view' | 'edit'>('edit');
+  const [reservaDialogOpen, setReservaDialogOpen] = useState(false);
   const [selectedEspaco, setSelectedEspaco] = useState<Espaco | null>(null);
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [sorting, setSorting] = useState<SortingState>([{ id: 'nome', desc: false }]);
@@ -43,6 +45,10 @@ export function EspacosPageClient() {
       }
       return newFilters;
     });
+  };
+  const handleOpenReservaDialog = (espaco: Espaco) => {
+    setSelectedEspaco(espaco);
+    setReservaDialogOpen(true);
   };
   const { data, isLoading, isError, isFetching, refetch } = useGetEspacos({
     page: pagination.pageIndex,
@@ -128,7 +134,16 @@ export function EspacosPageClient() {
           canEdit={access.canEditEspacoDetails}
           FormComponent={EspacoForm}
           MainDataViewComponent={EspacoMainDataView}
-          RelationsViewComponent={EspacoRelationsView}
+          RelationsViewComponent={props => (
+            <EspacoRelationsView {...props} onSolicitarReserva={handleOpenReservaDialog} />
+          )}
+        />
+      )}
+      {selectedEspaco && (
+        <SolicitarReservaDialog
+          espaco={selectedEspaco}
+          open={reservaDialogOpen}
+          onOpenChange={setReservaDialogOpen}
         />
       )}
     </div>
