@@ -1,8 +1,8 @@
 'use client';
 
-import type { Equipamento, TipoEquipamento } from '../types';
+import type { Equipamento, TipoEquipamento } from '@/features/equipamentos/types';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import {
+  useGetAllTiposEquipamento,
+  useLinkEquipamentosToEspaco,
+} from '@/features/equipamentos/services/equipamentoService';
+import { EquipamentoStatus } from '@/features/equipamentos/types';
 import { useDebounce } from '@/lib/hooks/useDebounce';
-import { useGetUniqueTiposDeEquipamento, useLinkEquipamentos } from '../services/espacoService';
-import { EquipamentoStatus } from '../types';
+
 import { SelectSpecificEquipamentoDialog } from './SelectSpecificEquipamentoDialog';
 
 type AddEquipamentoDialogProps = {
@@ -36,8 +40,8 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [pendingLinks, setPendingLinks] = useState<PendingLink[]>([]);
   const [specificSelectionState, setSpecificSelectionState] = useState<{ open: boolean; tipo: TipoEquipamento | null }>({ open: false, tipo: null });
-  const { data: uniqueTipos, isLoading } = useGetUniqueTiposDeEquipamento({ search: debouncedSearchTerm });
-  const linkMutation = useLinkEquipamentos();
+  const { data: uniqueTipos, isLoading } = useGetAllTiposEquipamento({ search: debouncedSearchTerm });
+  const linkMutation = useLinkEquipamentosToEspaco();
   const addGenericLink = (tipo: TipoEquipamento, quantity: number) => {
     if (quantity > 0) {
       setPendingLinks(prev => [...prev, { id: tipo.id, type: 'generic', tipo, quantity }]);
@@ -54,12 +58,16 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
     });
     return Array.from(groups.values());
   }, [pendingLinks]);
-
+  useEffect(() => {
+    if (open) {
+      setSearchTerm('');
+      setPendingLinks([]);
+    }
+  }, [open]);
   const addSpecificLinks = (items: Equipamento[]) => {
     const newLinks = items.map(item => ({ id: item.id, type: 'specific' as const, item }));
     setPendingLinks(prev => [...prev, ...newLinks]);
   };
-
   const handleLink = () => {
     const payload = pendingLinks.flatMap((link) => {
       if (link.type === 'specific') {
@@ -104,7 +112,7 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
               <ScrollArea className="flex-1 rounded-md border">
                 <div className="p-4 space-y-2">
                   {isLoading && <Loader2 className="animate-spin mx-auto" />}
-                  {!isLoading && uniqueTipos.map(tipo => (
+                  {!isLoading && uniqueTipos?.map(tipo => (
                     <div key={tipo.id} className="flex items-center justify-between">
                       <span>{tipo.nome}</span>
                       {tipo.isDetalhamentoObrigatorio
@@ -118,6 +126,9 @@ export function AddEquipamentoDialog({ open, onOpenChange, espacoId, linkedSpeci
                           )}
                     </div>
                   ))}
+                  {!isLoading && uniqueTipos?.length === 0 && (
+                    <p className="text-sm text-center text-muted-foreground">Nenhum tipo encontrado.</p>
+                  )}
                 </div>
               </ScrollArea>
             </div>

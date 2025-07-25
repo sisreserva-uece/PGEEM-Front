@@ -3,10 +3,10 @@
 import type { SignUpFormValues } from '../types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormHeader } from '@/components/ui/typography';
 import { useRouter } from '@/lib/i18nNavigation';
@@ -16,12 +16,8 @@ import { signUpSchema } from '../types';
 export function SignUpForm() {
   const router = useRouter();
   const { signUp, isPending } = useSignUp();
-  const {
-    control,
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignUpFormValues>({
+
+  const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       nome: '',
@@ -45,95 +41,143 @@ export function SignUpForm() {
   };
 
   return (
-    <>
-      <div className="w-full max-w-2xl mx-auto">
-        <div className="bg rounded-lg shadow-2xl overflow-hidden">
-          <div className="w-full">
-            <Image
-              src="/assets/images/signIn/bgImage.png"
-              alt="Universidade Estadual do Ceará"
-              width={600}
-              height={200}
-              className="w-full h-auto"
-              priority
-            />
-          </div>
-          <div className="p-8">
-            <FormHeader
-              title="CRIAR NOVA CONTA"
-              subtitle="Preencha os dados para criar sua conta"
-            />
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="w-full max-w-2xl mx-auto">
+      <div className="bg rounded-lg shadow-2xl overflow-hidden">
+        <div className="w-full">
+          <Image
+            src="/assets/images/signIn/bgImage.png"
+            alt="Universidade Estadual do Ceará"
+            width={600}
+            height={200}
+            className="w-full h-auto"
+            priority
+          />
+        </div>
+        <div className="p-8">
+          <FormHeader
+            title="CRIAR NOVA CONTA"
+            subtitle="Preencha os dados para criar sua conta"
+          />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome Completo *</Label>
-                  <Input id="nome" type="text" placeholder="Digite seu nome" disabled={isPending} {...register('nome')} />
-                  {errors.nome && <p className="text-sm font-medium text-red-500 mt-1">{errors.nome.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input id="email" type="email" placeholder="Digite seu email" disabled={isPending} {...register('email')} />
-                  {errors.email && <p className="text-sm font-medium text-red-500 mt-1">{errors.email.message}</p>}
-                </div>
+                <FormField
+                  control={form.control}
+                  name="nome"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome Completo *</FormLabel>
+                      <FormControl><Input placeholder="Digite seu nome" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email *</FormLabel>
+                      <FormControl><Input type="email" placeholder="Digite seu email" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="senha">Senha *</Label>
-                  <Input id="senha" type="password" placeholder="Mínimo 8 caracteres" disabled={isPending} {...register('senha')} />
-                  {errors.senha && <p className="text-sm font-medium text-red-500 mt-1">{errors.senha.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmSenha">Confirmar Senha *</Label>
-                  <Input id="confirmSenha" type="password" placeholder="Confirme sua senha" disabled={isPending} {...register('confirmSenha')} />
-                  {errors.confirmSenha && <p className="text-sm font-medium text-red-500 mt-1">{errors.confirmSenha.message}</p>}
-                </div>
+                <FormField
+                  control={form.control}
+                  name="senha"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha *</FormLabel>
+                      <FormControl><Input type="password" placeholder="Mínimo 8 caracteres" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="confirmSenha"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Senha *</FormLabel>
+                      <FormControl><Input type="password" placeholder="Confirme sua senha" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="matricula">Matrícula *</Label>
-                  <Input id="matricula" type="text" inputMode="numeric" placeholder="Digite sua matrícula" disabled={isPending} {...register('matricula')} />
-                  {errors.matricula && <p className="text-sm font-medium text-red-500 mt-1">{errors.matricula.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefone">Telefone *</Label>
-                  <Input id="telefone" type="tel" placeholder="Digite seu telefone" disabled={isPending} {...register('telefone')} />
-                  {errors.telefone && <p className="text-sm font-medium text-red-500 mt-1">{errors.telefone.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefone">Documento Fiscal *</Label>
-                  <Input id="telefone" type="tel" placeholder="Digite seu Documento Fiscal" disabled={isPending} {...register('documentoFiscal')} />
-                  {errors.documentoFiscal && <p className="text-sm font-medium text-red-500 mt-1">{errors.documentoFiscal.message}</p>}
-                </div>
+                <FormField
+                  control={form.control}
+                  name="matricula"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Matrícula *</FormLabel>
+                      <FormControl><Input inputMode="numeric" placeholder="Digite sua matrícula" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="telefone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone *</FormLabel>
+                      <FormControl><Input type="tel" placeholder="Digite seu telefone" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="documentoFiscal"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Documento Fiscal *</FormLabel>
+                      <FormControl><Input placeholder="Digite seu Documento Fiscal" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Cargo *</Label>
-                  <Controller
-                    name="cargosNome"
-                    control={control}
-                    render={({ field }) => (
+                <FormField
+                  control={form.control}
+                  name="cargosNome"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cargo *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione seu cargo" />
-                        </SelectTrigger>
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Selecione seu cargo" /></SelectTrigger>
+                        </FormControl>
                         <SelectContent>
                           <SelectItem value="ALUNO">Aluno</SelectItem>
                           <SelectItem value="PROFESSOR">Professor</SelectItem>
                           <SelectItem value="FUNCIONARIO">Funcionário</SelectItem>
                         </SelectContent>
                       </Select>
-                    )}
-                  />
-                  {errors.cargosNome && <p className="text-sm font-medium text-red-500 mt-1">{errors.cargosNome.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fotoPerfil">URL da Foto de Perfil</Label>
-                  <Input id="fotoPerfil" type="url" placeholder="URL da sua foto (opcional)" disabled={isPending} {...register('fotoPerfil')} />
-                  {errors.fotoPerfil && <p className="text-sm font-medium text-red-500 mt-1">{errors.fotoPerfil.message}</p>}
-                </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="fotoPerfil"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>URL da Foto de Perfil</FormLabel>
+                      <FormControl><Input type="url" placeholder="URL da sua foto (opcional)" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -155,9 +199,9 @@ export function SignUpForm() {
                 </Button>
               </div>
             </form>
-          </div>
+          </Form>
         </div>
       </div>
-    </>
+    </div>
   );
 }

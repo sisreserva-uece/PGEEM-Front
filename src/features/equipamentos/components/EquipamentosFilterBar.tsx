@@ -1,15 +1,16 @@
 'use client';
 
+import type { TipoEquipamento } from '../types';
 import { DebouncedInput } from '@/components/ui/debounced-input';
 import { FilterBarContainer } from '@/components/ui/filter-bar-container';
 import { FilterSelect } from '@/components/ui/filter-select';
-import { useGetTiposEquipamento } from '../services/equipamentoService';
 import { EquipamentoStatus } from '../types';
 
 type EquipamentosFilterBarProps = {
   filters: Record<string, any>;
   onFilterChange: (key: string, value: any) => void;
   isFetching: boolean;
+  tiposOptions: TipoEquipamento[];
 };
 
 const statusOptions = [
@@ -18,8 +19,7 @@ const statusOptions = [
   { id: String(EquipamentoStatus.EM_MANUTENCAO), nome: 'Em Manutenção' },
 ];
 
-export function EquipamentosFilterBar({ filters, onFilterChange, isFetching }: EquipamentosFilterBarProps) {
-  const { data: tipos } = useGetTiposEquipamento({ todos: true });
+export function EquipamentosFilterBar({ filters, onFilterChange, isFetching, tiposOptions }: EquipamentosFilterBarProps) {
   const handleClear = () => {
     onFilterChange('all', null);
   };
@@ -35,7 +35,7 @@ export function EquipamentosFilterBar({ filters, onFilterChange, isFetching }: E
         />
         <FilterSelect
           placeholder="Filtrar por Tipo"
-          options={tipos?.content}
+          options={tiposOptions}
           value={filters.tipoEquipamento || ''}
           onValueChange={value => onFilterChange('tipoEquipamento', value)}
           disabled={isFetching}

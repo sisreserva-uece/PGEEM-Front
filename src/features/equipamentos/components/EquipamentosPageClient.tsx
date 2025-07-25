@@ -1,20 +1,24 @@
 'use client';
 
-import type { PaginationState, SortingState } from '@tanstack/react-table';
+import type { SortingState } from '@tanstack/react-table';
 import type { Equipamento, TipoEquipamento } from '../types';
 import { PlusCircle } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
+import { MasterDetailSheet } from '@/components/ui/master-detail-sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePermissions } from '@/features/auth/hooks/usePermissions';
-import { useGetEquipamentos, useGetTiposEquipamento } from '../services/equipamentoService';
+import { EquipamentoForm } from '@/features/equipamentos/components/EquipamentoForm';
+import { EquipamentoMainDataView, EquipamentoRelationsView } from '@/features/equipamentos/components/EquipamentoView';
+import { useUrlTrigger } from '@/lib/hooks/useUrlTrigger';
+import { useGetAllNonGenericEquipamentos, useGetEquipamentoById } from '../services/equipamentoService';
 import { getEquipamentoColumns } from './EquipamentoColumns';
 import { EquipamentosFilterBar } from './EquipamentosFilterBar';
-import { EquipamentoSheet } from './EquipamentoSheet';
-import { getTipoEquipamentoColumns } from './TipoEquipamentoColumns';
-import { TipoEquipamentoSheet } from './TipoEquipamentoSheet';
+import { ManageTiposTab } from './ManageTiposTab';
+import { TipoEquipamentoForm } from './TipoEquipamentoForm';
 
 export function EquipamentosPageClient() {
   const permissions = usePermissions('equipamentos');
@@ -22,13 +26,6 @@ export function EquipamentosPageClient() {
   const searchParams = useSearchParams();
   const activeTab = searchParams.get('tab') === 'tipos' && permissions.canManageTipos ? 'tipos' : 'equipamentos';
   const [tipoSheetState, setTipoSheetState] = useState<{ open: boolean; tipo: TipoEquipamento | null }>({ open: false, tipo: null });
-  const [tiposPagination, setTiposPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
-  const { data: tiposData, isLoading: isLoadingTipos, isFetching: isFetchingTipos } = useGetTiposEquipamento({
-    sortField: 'nome',
-    page: tiposPagination.pageIndex,
-    size: tiposPagination.pageSize,
-  });
-  const tipoColumns = getTipoEquipamentoColumns({ onEdit: tipo => setTipoSheetState({ open: true, tipo }) });
   const [sheetState, setSheetState] = useState<{ open: boolean; equipamento: Equipamento | null }>({ open: false, equipamento: null });
   const [sheetMode, setSheetMode] = useState<'view' | 'edit'>('edit');
   const handleView = (equipamento: Equipamento) => {
@@ -39,6 +36,7 @@ export function EquipamentosPageClient() {
     setSheetState({ open: true, equipamento });
     setSheetMode('edit');
   };
+  const { data: allNonGenericEquipamentos, isLoading, isError } = useGetAllNonGenericEquipamentos();
   const handleCreate = () => {
     setSheetState({ open: true, equipamento: null });
     setSheetMode('edit');
@@ -61,21 +59,63 @@ export function EquipamentosPageClient() {
       return newFilters;
     });
   };
-  const { data: equipamentosData, isLoading: isLoadingEquipamentos, isFetching: isFetchingEquipamentos, isError: isErrorEquipamentos } = useGetEquipamentos({
-    page: pagination.pageIndex,
-    size: pagination.pageSize,
-    sortField: sorting[0]?.id ?? 'tombamento',
-    sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
-    ...filters,
-  });
   const equipamentoColumns = getEquipamentoColumns({
     onView: handleView,
     onEdit: handleEdit,
     permissions,
   });
+  const [openId, clearOpenId] = useUrlTrigger('open');
+  const { data: openedEntity, isLoading: isLoadingOpenedEntity, isError: isErrorOpenedEntity } = useGetEquipamentoById(openId);
+  useEffect(() => {
+    if (isLoadingOpenedEntity) {
+      toast.loading('Carregando equipamento...', { id: 'loading-entity' });
+      return;
+    }
+    toast.dismiss('loading-entity');
+    if (openedEntity) {
+      handleView(openedEntity);
+      clearOpenId();
+    }
+    if (isErrorOpenedEntity) {
+      toast.error('Não foi possível encontrar o equipamento solicitado.');
+      clearOpenId();
+    }
+  }, [openedEntity, isLoadingOpenedEntity, isErrorOpenedEntity, clearOpenId]);
   const handleTabChange = (tab: string) => {
     router.push(`/dashboard/equipamentos?tab=${tab}`);
   };
+  const filteredEquipamentos = useMemo(() => {
+    if (!allNonGenericEquipamentos) {
+      return [];
+    }
+    let filteredData = allNonGenericEquipamentos;
+    if (filters.tombamento) {
+      filteredData = filteredData.filter(item =>
+        item.tombamento.toLowerCase().includes(String(filters.tombamento).toLowerCase()),
+      );
+    }
+    if (filters.tipoEquipamento) {
+      filteredData = filteredData.filter(item => item.tipoEquipamento.id === filters.tipoEquipamento);
+    }
+    if (filters.status) {
+      filteredData = filteredData.filter(item => String(item.status) === filters.status);
+    }
+    return filteredData;
+  }, [allNonGenericEquipamentos, filters]);
+  const tiposInUse = useMemo(() => {
+    if (!allNonGenericEquipamentos) {
+      return [];
+    }
+    const uniqueTiposMap = new Map<string, TipoEquipamento>();
+    allNonGenericEquipamentos.forEach((equip) => {
+      if (!uniqueTiposMap.has(equip.tipoEquipamento.id)) {
+        uniqueTiposMap.set(equip.tipoEquipamento.id, equip.tipoEquipamento);
+      }
+    });
+    return Array.from(uniqueTiposMap.values());
+  }, [allNonGenericEquipamentos]);
+
+  const pageCount = allNonGenericEquipamentos ? Math.ceil(allNonGenericEquipamentos.length / pagination.pageSize) : 0;
   return (
     <div className="h-full flex-1 flex-col space-y-4 p-4 md:p-8 md:flex">
       <div className="flex items-center justify-between">
@@ -100,52 +140,48 @@ export function EquipamentosPageClient() {
         )}
         <TabsContent value="equipamentos" className="mt-4">
           <div className="space-y-4">
-            <EquipamentosFilterBar filters={filters} onFilterChange={handleFilterChange} isFetching={isFetchingEquipamentos} />
+            <EquipamentosFilterBar
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              isFetching={isLoading}
+              tiposOptions={tiposInUse}
+            />
             <DataTable
               columns={equipamentoColumns}
-              data={equipamentosData?.content ?? []}
-              pageCount={equipamentosData?.totalPages ?? 0}
+              data={filteredEquipamentos}
+              pageCount={pageCount}
               pagination={pagination}
               onPaginationChange={setPagination}
               sorting={sorting}
               onSortingChange={setSorting}
-              isLoading={isLoadingEquipamentos || isFetchingEquipamentos}
-              isError={isErrorEquipamentos}
+              isLoading={isLoading}
+              isError={isError}
+              manualPagination={false}
+              manualSorting={false}
             />
           </div>
         </TabsContent>
         {permissions.canManageTipos && (
           <TabsContent value="tipos" className="mt-4">
-            <div className="flex justify-end mb-4">
-              <Button onClick={() => setTipoSheetState({ open: true, tipo: null })}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {' '}
-                Novo Tipo
-              </Button>
-            </div>
-            <DataTable
-              columns={tipoColumns}
-              data={tiposData?.content ?? []}
-              isLoading={isLoadingTipos || isFetchingTipos}
-              pageCount={tiposData?.totalPages ?? 0}
-              pagination={tiposPagination}
-              onPaginationChange={setTiposPagination}
-              sorting={[]}
-              onSortingChange={() => {}}
-            />
+            <ManageTiposTab />
           </TabsContent>
         )}
       </Tabs>
       {tipoSheetState.open && (
-        <TipoEquipamentoSheet key={tipoSheetState.tipo?.id ?? 'new-tipo'} open={tipoSheetState.open} onOpenChange={isOpen => setTipoSheetState({ ...tipoSheetState, open: isOpen })} tipo={tipoSheetState.tipo} />
+        <TipoEquipamentoForm key={tipoSheetState.tipo?.id ?? 'new-tipo'} open={tipoSheetState.open} onOpenChange={isOpen => setTipoSheetState({ ...tipoSheetState, open: isOpen })} tipo={tipoSheetState.tipo} />
       )}
       {sheetState.open && (
-        <EquipamentoSheet
+        <MasterDetailSheet
           key={sheetState.equipamento?.id ?? 'new-equipamento'}
           open={sheetState.open}
           onOpenChange={isOpen => setSheetState({ ...sheetState, open: isOpen })}
-          equipamento={sheetState.equipamento}
+          entity={sheetState.equipamento}
+          entityName="Equipamento"
           initialMode={sheetMode}
+          canEdit={permissions.canEdit}
+          FormComponent={EquipamentoForm}
+          MainDataViewComponent={EquipamentoMainDataView}
+          RelationsViewComponent={EquipamentoRelationsView}
         />
       )}
     </div>

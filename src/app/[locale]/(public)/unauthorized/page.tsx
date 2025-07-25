@@ -1,7 +1,7 @@
 'use client';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useLogout } from '@/features/auth/hooks/useLogout'; // Import the hook
+import { useLogout } from '@/features/auth/hooks/useLogout';
+import { useRouter } from '@/lib/i18nNavigation';
 import '@/styles/global.css';
 
 export default function UnauthorizedPage() {

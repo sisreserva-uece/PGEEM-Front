@@ -11,7 +11,7 @@ export function createCrudHooks<TData, TCreateDto = any, TUpdateDto = any>(entit
     detail: (id: string) => [...queryKeys.details(), id] as const,
   };
 
-  const useGetAll = (params: Record<string, any>) => {
+  const useGet = (params: Record<string, any>) => {
     return useQuery({
       queryKey: queryKeys.list(params),
       queryFn: async () => {
@@ -58,5 +58,29 @@ export function createCrudHooks<TData, TCreateDto = any, TUpdateDto = any>(entit
     });
   };
 
-  return { queryKeys, useGetAll, useCreate, useUpdate, useDelete };
+  const useGetById = (id: string | null) => {
+    return useQuery({
+      queryKey: queryKeys.detail(id!),
+      queryFn: async () => {
+        const response = await apiClient.get<{ data: PaginatedResponse<TData> }>(`/${entityName}`, {
+          params: { id },
+        });
+        const entity = response.data.data.content[0];
+        if (!entity) {
+          const readableName = entityName.charAt(0).toUpperCase() + entityName.slice(1);
+          throw new Error(`${readableName} não encontrado.`);
+        }
+        return entity;
+      },
+      enabled: !!id,
+      retry: (failureCount, error: any) => {
+        if (error.message.includes('não encontrado')) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+    });
+  };
+
+  return { queryKeys, useGet, useCreate, useUpdate, useDelete, useGetById };
 }

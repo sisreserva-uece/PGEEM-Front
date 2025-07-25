@@ -43,9 +43,6 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as AxiosRequestConfig;
     if (originalRequest.url?.endsWith('/refresh')) {
       useAuthStore.getState().clearAuth();
-      if (window.location.pathname !== '/signin') {
-        window.location.href = '/signin';
-      }
       return Promise.reject(error);
     }
     const status = error.response?.status;
@@ -79,9 +76,6 @@ apiClient.interceptors.response.use(
         failedQueue.forEach(prom => prom.reject(refreshError));
 
         useAuthStore.getState().clearAuth();
-        if (window.location.pathname !== '/signin') {
-          window.location.href = '/signin';
-        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

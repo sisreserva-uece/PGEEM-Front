@@ -7,6 +7,7 @@ import { CenteredPageLayout } from '@/components/CenteredPageLayout';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { AuthInitializer } from '@/features/auth/components/AuthInitializer';
+import { AuthObserver } from '@/features/auth/components/AuthObserver';
 import { ProtectedNavigation } from '@/features/nav-bar/components/ProtectedNavigation';
 import { inter } from '@/lib/font';
 import { routing } from '@/lib/i18nNavigation';
@@ -34,6 +35,7 @@ export default async function RootLayout(props: {
         <AuthInitializer>
           <AppProviders>
             <NextIntlClientProvider locale={locale} messages={messages}>
+              <AuthObserver />
               <div className="flex min-h-screen flex-col overflow-x-hidden">
                 <Header />
                 <ProtectedNavigation />

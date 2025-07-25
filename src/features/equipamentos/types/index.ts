@@ -27,3 +27,10 @@ export type EquipamentoEspacoLink = {
   equipamento: Equipamento;
   espaco: Espaco;
 };
+
+export type EquipamentoLinkPayload = {
+  tombamento: string;
+  descricao: string;
+  statusEquipamento: string;
+  tipoEquipamentoId: string;
+};

@@ -4,20 +4,12 @@ import type { Espaco } from '../types';
 import { AlertTriangle, HardDrive, ShieldCheck, User, Wrench, XCircle } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { RelatedItemLink } from '@/components/ui/related-item-link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { InfoItem } from '@/features/equipamentos/components/EquipamentoView';
+import { EquipamentoStatus } from '@/features/equipamentos/types';
 import { useGetEspacoGestores, useGetLinkedEquipamentos } from '../services/espacoService';
-import { EquipamentoStatus } from '../types';
-
-function InfoItem({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
-      <p className="text-base">{children || <span className="text-muted-foreground italic">Não informado</span>}</p>
-    </div>
-  );
-}
 
 const getStatusInfo = (status: EquipamentoStatus) => {
   switch (status) {
@@ -28,11 +20,22 @@ const getStatusInfo = (status: EquipamentoStatus) => {
   }
 };
 
-type EspacoViewProps = {
-  espaco: Espaco;
-};
+export function EspacoMainDataView({ entity: espaco }: { entity: Espaco }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4">
+      <InfoItem label="Nome do Espaço">{espaco.nome}</InfoItem>
+      <InfoItem label="Departamento">{espaco.departamento.nome}</InfoItem>
+      <InfoItem label="Localização">{espaco.localizacao.nome}</InfoItem>
+      <InfoItem label="Tipo de Espaço">{espaco.tipoEspaco.nome}</InfoItem>
+      <InfoItem label="Tipo de Atividade">{espaco.tipoAtividade.nome}</InfoItem>
+      <InfoItem label="Precisa de Projeto?">{espaco.precisaProjeto ? 'Sim' : 'Não'}</InfoItem>
+      <InfoItem label="URL do CNPq" className="md:col-span-2">{espaco.urlCnpq}</InfoItem>
+      <InfoItem label="Observação" className="md:col-span-2">{espaco.observacao}</InfoItem>
+    </div>
+  );
+}
 
-export function EspacoView({ espaco }: EspacoViewProps) {
+export function EspacoRelationsView({ entity: espaco }: { entity: Espaco }) {
   const { data: gestorLinks, isLoading: isLoadingGestores } = useGetEspacoGestores(espaco.id);
   const { data: equipamentoLinks, isLoading: isLoadingEquipamentos } = useGetLinkedEquipamentos(espaco.id);
   const { specificItems, genericItemsGrouped } = useMemo(() => {
@@ -52,104 +55,85 @@ export function EspacoView({ espaco }: EspacoViewProps) {
     });
     return { specificItems: specific, genericItemsGrouped: Array.from(genericMap.values()) };
   }, [equipamentoLinks]);
-
   const activeGestores = gestorLinks?.filter(link => link.estaAtivo) ?? [];
-
   return (
-    <div className="space-y-6">
-      <section>
-        <h3 className="text-lg font-semibold tracking-tight text-foreground mb-4">Dados Principais</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4">
-          <InfoItem label="Nome do Espaço">{espaco.nome}</InfoItem>
-          <InfoItem label="Departamento">{espaco.departamento.nome}</InfoItem>
-          <InfoItem label="Localização">{espaco.localizacao.nome}</InfoItem>
-          <InfoItem label="Tipo de Espaço">{espaco.tipoEspaco.nome}</InfoItem>
-          <InfoItem label="Tipo de Atividade">{espaco.tipoAtividade.nome}</InfoItem>
-          <InfoItem label="Precisa de Projeto?">{espaco.precisaProjeto ? 'Sim' : 'Não'}</InfoItem>
-          <div className="md:col-span-2"><InfoItem label="URL do CNPq">{espaco.urlCnpq}</InfoItem></div>
-          <div className="md:col-span-2"><InfoItem label="Observação">{espaco.observacao}</InfoItem></div>
+    <Tabs defaultValue="gestores" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="gestores">
+          Gestores (
+          {isLoadingGestores ? '...' : activeGestores.length}
+          )
+        </TabsTrigger>
+        <TabsTrigger value="equipamentos">
+          Equipamentos (
+          {isLoadingEquipamentos ? '...' : equipamentoLinks?.length ?? 0}
+          )
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="gestores" className="mt-4">
+        <div className="space-y-2 rounded-lg border p-2 min-h-[100px]">
+          {isLoadingGestores
+            ? <Skeleton className="h-12 w-full" />
+            : activeGestores.length > 0
+              ? (
+                  activeGestores.map(link => (
+                    <div key={link.id} className="flex items-center gap-3 p-2">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium text-sm">{link.gestor.nome}</p>
+                        <p className="text-xs text-muted-foreground">{link.gestor.email}</p>
+                      </div>
+                    </div>
+                  ))
+                )
+              : <p className="text-center text-sm text-muted-foreground p-4">Nenhum gestor vinculado.</p>}
         </div>
-      </section>
-      <Separator />
-      <section>
-        <h3 className="text-lg font-semibold tracking-tight text-foreground mb-4">Relações Vinculadas</h3>
-        <Tabs defaultValue="gestores" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="gestores">
-              Gestores (
-              {isLoadingGestores ? '...' : activeGestores.length}
-              )
-            </TabsTrigger>
-            <TabsTrigger value="equipamentos">
-              Equipamentos (
-              {isLoadingEquipamentos ? '...' : equipamentoLinks?.length ?? 0}
-              )
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="gestores" className="mt-4">
-            <div className="space-y-2 rounded-lg border p-2 min-h-[100px]">
-              {isLoadingGestores
-                ? <Skeleton className="h-12 w-full" />
-                : activeGestores.length > 0
-                  ? (
-                      activeGestores.map(link => (
-                        <div key={link.id} className="flex items-center gap-3 p-2">
-                          <User className="h-5 w-5 text-muted-foreground" />
+      </TabsContent>
+      <TabsContent value="equipamentos" className="mt-4">
+        <div className="space-y-4 rounded-lg border p-4 min-h-[100px]">
+          {isLoadingEquipamentos
+            ? <Skeleton className="h-20 w-full" />
+            : (equipamentoLinks?.length ?? 0) > 0
+                ? (
+                    <>
+                      {specificItems.map((link) => {
+                        const statusInfo = getStatusInfo(link.equipamento.status);
+                        const Icon = statusInfo.icon;
+                        return (
+                          <RelatedItemLink
+                            key={link.id}
+                            href={`/dashboard/equipamentos?open=${link.equipamento.id}`}
+                            icon={<HardDrive className="h-5 w-5 text-muted-foreground" />}
+                            title={link.equipamento.tombamento}
+                            description={link.equipamento.descricao}
+                            asideContent={(
+                              <Badge className={`${statusInfo.color} text-white hover:${statusInfo.color} flex items-center gap-1 text-xs`}>
+                                <Icon className="h-3 w-3" />
+                                <span>{statusInfo.text}</span>
+                              </Badge>
+                            )}
+                          />
+                        );
+                      })}
+                      {genericItemsGrouped.map((group, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          <HardDrive className="h-5 w-5 text-muted-foreground opacity-60" />
                           <div>
-                            <p className="font-medium text-sm">{link.gestor.nome}</p>
-                            <p className="text-xs text-muted-foreground">{link.gestor.email}</p>
+                            <p className="font-medium text-sm">
+                              {group.count}
+                              x
+                              {' '}
+                              {group.items[0].equipamento.tipoEquipamento.nome}
+                            </p>
+                            <p className="text-xs text-muted-foreground">Item genérico</p>
                           </div>
                         </div>
-                      ))
-                    )
-                  : <p className="text-center text-sm text-muted-foreground p-4">Nenhum gestor vinculado.</p>}
-            </div>
-          </TabsContent>
-          <TabsContent value="equipamentos" className="mt-4">
-            <div className="space-y-4 rounded-lg border p-4 min-h-[100px]">
-              {isLoadingEquipamentos
-                ? <Skeleton className="h-20 w-full" />
-                : (equipamentoLinks?.length ?? 0) > 0
-                    ? (
-                        <>
-                          {specificItems.map((link) => {
-                            const statusInfo = getStatusInfo(link.equipamento.status);
-                            const Icon = statusInfo.icon;
-                            return (
-                              <div key={link.id} className="flex items-center gap-3">
-                                <HardDrive className="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                  <p className="font-medium text-sm">{link.equipamento.tombamento}</p>
-                                  <p className="text-xs text-muted-foreground">{link.equipamento.descricao}</p>
-                                </div>
-                                <Badge className={`${statusInfo.color} text-white hover:${statusInfo.color} flex items-center gap-1 text-xs`}>
-                                  <Icon className="h-3 w-3" />
-                                  <span>{statusInfo.text}</span>
-                                </Badge>
-                              </div>
-                            );
-                          })}
-                          {genericItemsGrouped.map((group, index) => (
-                            <div key={index} className="flex items-center gap-3">
-                              <HardDrive className="h-5 w-5 text-muted-foreground opacity-60" />
-                              <div>
-                                <p className="font-medium text-sm">
-                                  {group.count}
-                                  x
-                                  {' '}
-                                  {group.items[0].equipamento.tipoEquipamento.nome}
-                                </p>
-                                <p className="text-xs text-muted-foreground">Item genérico</p>
-                              </div>
-                            </div>
-                          ))}
-                        </>
-                      )
-                    : <p className="text-center text-sm text-muted-foreground p-4">Nenhum equipamento vinculado.</p>}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </section>
-    </div>
+                      ))}
+                    </>
+                  )
+                : <p className="text-center text-sm text-muted-foreground p-4">Nenhum equipamento vinculado.</p>}
+        </div>
+      </TabsContent>
+    </Tabs>
   );
 }
