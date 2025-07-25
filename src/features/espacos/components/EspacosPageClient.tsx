@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { MasterDetailSheet } from '@/components/ui/master-detail-sheet';
-import { usePermissions } from '@/features/auth/hooks/usePermissions';
+import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { EspacoForm } from '@/features/espacos/components/EspacoForm';
 import { EspacoMainDataView, EspacoRelationsView } from '@/features/espacos/components/EspacoView';
 import { useUrlTrigger } from '@/lib/hooks/useUrlTrigger';
@@ -25,6 +25,9 @@ export function EspacosPageClient() {
     pageIndex: 0,
     pageSize: 10,
   });
+
+  const access = useUserAccess(selectedEspaco);
+
   const handleFilterChange = (key: string, value: any) => {
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
     if (key === 'all') {
@@ -41,7 +44,6 @@ export function EspacosPageClient() {
       return newFilters;
     });
   };
-  const permissions = usePermissions('espacos');
   const { data, isLoading, isError, isFetching, refetch } = useGetEspacos({
     page: pagination.pageIndex,
     size: pagination.pageSize,
@@ -65,9 +67,9 @@ export function EspacosPageClient() {
     setSheetMode('edit');
     setSheetOpen(true);
   };
-  const columns = getColumns({ onView: handleView, onEdit: handleEdit, permissions });
+  const columns = getColumns({ onView: handleView, onEdit: handleEdit });
   const pageCount = data?.totalPages ?? 0;
-  const isDataLoading = isLoading || isFetching;
+  const isDataLoading = isLoading || isFetching || access.isLoading;
   useEffect(() => {
     if (openId && data?.content) {
       const entityToOpen = data.content.find(item => item.id === openId);
@@ -91,7 +93,7 @@ export function EspacosPageClient() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isDataLoading ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
-          {permissions.canCreate && (
+          {access.canCreateEspaco && (
             <Button onClick={handleCreate}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Novo Espaço
@@ -123,7 +125,7 @@ export function EspacosPageClient() {
           entity={selectedEspaco}
           entityName="Espaço"
           initialMode={sheetMode}
-          canEdit={permissions.canEdit}
+          canEdit={access.canEditEspacoDetails}
           FormComponent={EspacoForm}
           MainDataViewComponent={EspacoMainDataView}
           RelationsViewComponent={EspacoRelationsView}

@@ -13,7 +13,7 @@ export const routesConfig: RouteConfig[] = [
     title: 'Espaços',
     href: '/dashboard/espacos',
     path: '/dashboard/espacos',
-    allowedRoles: ['ADMIN', 'COORDENADOR'],
+    allowedRoles: [],
   },
   {
     title: 'Equipamentos',
@@ -40,5 +40,17 @@ export const routesConfig: RouteConfig[] = [
     href: '/dashboard/comites',
     path: '/dashboard/comites',
     allowedRoles: ['ADMIN', 'COORDENADOR'],
+  },
+  {
+    title: 'Usuários',
+    href: '/dashboard/usuarios',
+    path: '/dashboard/usuarios',
+    allowedRoles: ['ADMIN'],
+  },
+  {
+    title: 'Projetos',
+    href: '/dashboard/projetos',
+    path: '/dashboard/projetos',
+    allowedRoles: ['ADMIN', 'PROFESSOR', 'PESQUISADOR'],
   },
 ];

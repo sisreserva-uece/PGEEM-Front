@@ -3,6 +3,7 @@ import type { EspacoCreatePayload, EspacoUpdatePayload } from '../validation/esp
 import type { Usuario } from '@/features/usuarios/types';
 import type { ApiSelectOption, PaginatedResponse } from '@/types/api';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import apiClient from '@/lib/api/apiClient';
 import { fetchAllPaginated } from '@/lib/api/fetchAllPaginated';
 import { createCrudHooks } from '@/lib/hooks/useCrud';
@@ -17,6 +18,25 @@ const espacoGestorKeys = {
   all: (espacoId: string) => ['espacoGestores', espacoId] as const,
   lists: (espacoId: string) => [...espacoGestorKeys.all(espacoId), 'list'] as const,
 };
+
+/**
+ * NEW: Fetches all EspacoGestorLink objects for the currently authenticated user.
+ * This is used to determine which spaces the user manages.
+ */
+export function useGetManagedEspacosForCurrentUser() {
+  const { user } = useAuthStore();
+  return useQuery({
+    queryKey: ['managedEspacosForUser', user?.id],
+    queryFn: () => {
+      if (!user?.id) {
+        return [];
+      }
+      return fetchAllPaginated<EspacoGestorLink>('/espaco/gestor', { gestor: user.id, estaAtivo: true });
+    },
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+}
 
 export function useGetEspacoGestores(espacoId: string) {
   return useQuery({
@@ -46,24 +66,34 @@ export function useGetUsuarios(params: { nome?: string; page?: number; size?: nu
 
 export function useAddGestorToEspaco() {
   const queryClient = useQueryClient();
+  const { user } = useAuthStore.getState();
+
   return useMutation({
     mutationFn: (data: { espacoId: string; usuarioGestorId: string }) => {
       return apiClient.post('/espaco/gestor', data);
     },
     onSuccess: (_, variables) => {
-      return queryClient.invalidateQueries({ queryKey: espacoGestorKeys.lists(variables.espacoId) });
+      queryClient.invalidateQueries({ queryKey: espacoGestorKeys.lists(variables.espacoId) });
+      if (variables.usuarioGestorId === user?.id) {
+        queryClient.invalidateQueries({ queryKey: ['managedEspacosForUser', user?.id] });
+      }
     },
   });
 }
 
 export function useRemoveGestorFromEspaco() {
   const queryClient = useQueryClient();
+  const { user } = useAuthStore.getState();
+
   return useMutation({
-    mutationFn: (variables: { linkId: string; espacoId: string }) => {
+    mutationFn: (variables: { linkId: string; espacoId: string; gestorId: string }) => {
       return apiClient.delete(`/espaco/gestor/${variables.linkId}`);
     },
     onSuccess: (_, variables) => {
-      return queryClient.invalidateQueries({ queryKey: espacoGestorKeys.lists(variables.espacoId) });
+      queryClient.invalidateQueries({ queryKey: espacoGestorKeys.lists(variables.espacoId) });
+      if (variables.gestorId === user?.id) {
+        queryClient.invalidateQueries({ queryKey: ['managedEspacosForUser', user?.id] });
+      }
     },
   });
 }

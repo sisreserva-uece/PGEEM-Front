@@ -2,7 +2,6 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Equipamento } from '../types';
-import type { PermissionChecks } from '@/features/auth/hooks/usePermissions';
 import { Eye, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,10 +17,11 @@ const statusMap: Record<EquipamentoStatus, { label: string; className: string }>
 type GetEquipamentoColumnsProps = {
   onView: (equipamento: Equipamento) => void;
   onEdit: (equipamento: Equipamento) => void;
-  permissions: PermissionChecks<'equipamentos'>;
+  canView: boolean;
+  canEdit: boolean;
 };
 
-export const getEquipamentoColumns = ({ onEdit, onView, permissions }: GetEquipamentoColumnsProps): ColumnDef<Equipamento>[] => [
+export const getEquipamentoColumns = ({ onEdit, onView, canView, canEdit }: GetEquipamentoColumnsProps): ColumnDef<Equipamento>[] => [
   {
     accessorKey: 'tombamento',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Tombamento" />,
@@ -49,13 +49,13 @@ export const getEquipamentoColumns = ({ onEdit, onView, permissions }: GetEquipa
     header: 'Ações',
     cell: ({ row }) => (
       <div className="flex items-center space-x-2">
-        {permissions.canView && (
+        {canView && (
           <Button variant="ghost" size="icon" onClick={() => onView(row.original)}>
             <Eye className="h-4 w-4" />
             <span className="sr-only">Visualizar</span>
           </Button>
         )}
-        {permissions.canEdit && (
+        {canEdit && (
           <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)}>
             <Pencil className="h-4 w-4" />
             <span className="sr-only">Editar</span>

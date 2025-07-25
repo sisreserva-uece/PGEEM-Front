@@ -1,7 +1,6 @@
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { authService } from '@/features/auth/services/authService';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { Env } from '../env';
 
@@ -33,54 +32,13 @@ apiClient.interceptors.request.use(
   },
 );
 
-let failedQueue: { resolve: (value: unknown) => void; reject: (reason?: any) => void }[] = [];
-let isRefreshing = false;
-
-// TODO: fix the refresh logic not working when token expires, and also make it smarter to auto refresh when jwt expires not only after a error api (but also always try it on a error) 401 403
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig;
-    if (originalRequest.url?.endsWith('/refresh')) {
-      useAuthStore.getState().clearAuth();
-      return Promise.reject(error);
-    }
     const status = error.response?.status;
-    const shouldAttemptRefresh = status === 401 || status === 500;
-    if (shouldAttemptRefresh) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return apiClient(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
-      }
-      isRefreshing = true;
-      try {
-        const { data } = await authService.refreshToken();
-        const token = data.data?.token;
-        useAuthStore.getState().setAccessToken(token);
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-        }
-        failedQueue.forEach(prom => prom.resolve(token));
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        failedQueue.forEach(prom => prom.reject(refreshError));
-
-        useAuthStore.getState().clearAuth();
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-        failedQueue = [];
-      }
+    if (status === 401 || status === 403) {
+      useAuthStore.getState().clearAuth();
     }
     const shouldShowToast = originalRequest._showToastOnError !== false;
     if (error.response && shouldShowToast) {

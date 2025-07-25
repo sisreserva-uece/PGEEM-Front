@@ -11,6 +11,9 @@ export function useAuthorization() {
   if (!allowedRoles) {
     return { isAuthorized: true };
   }
+  if (allowedRoles.length === 0) {
+    return { isAuthorized: true };
+  }
   const isAuthorized = allowedRoles.some(role =>
     userRoles.includes(role),
   );

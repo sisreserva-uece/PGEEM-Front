@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { MasterDetailSheet } from '@/components/ui/master-detail-sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { usePermissions } from '@/features/auth/hooks/usePermissions';
+import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { EquipamentoForm } from '@/features/equipamentos/components/EquipamentoForm';
 import { EquipamentoMainDataView, EquipamentoRelationsView } from '@/features/equipamentos/components/EquipamentoView';
 import { useUrlTrigger } from '@/lib/hooks/useUrlTrigger';
@@ -21,10 +21,10 @@ import { ManageTiposTab } from './ManageTiposTab';
 import { TipoEquipamentoForm } from './TipoEquipamentoForm';
 
 export function EquipamentosPageClient() {
-  const permissions = usePermissions('equipamentos');
+  const access = useUserAccess();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const activeTab = searchParams.get('tab') === 'tipos' && permissions.canManageTipos ? 'tipos' : 'equipamentos';
+  const activeTab = searchParams.get('tab') === 'tipos' && access.canManageTiposEquipamento ? 'tipos' : 'equipamentos';
   const [tipoSheetState, setTipoSheetState] = useState<{ open: boolean; tipo: TipoEquipamento | null }>({ open: false, tipo: null });
   const [sheetState, setSheetState] = useState<{ open: boolean; equipamento: Equipamento | null }>({ open: false, equipamento: null });
   const [sheetMode, setSheetMode] = useState<'view' | 'edit'>('edit');
@@ -62,7 +62,8 @@ export function EquipamentosPageClient() {
   const equipamentoColumns = getEquipamentoColumns({
     onView: handleView,
     onEdit: handleEdit,
-    permissions,
+    canView: access.canViewEquipamento,
+    canEdit: access.canEditEquipamento,
   });
   const [openId, clearOpenId] = useUrlTrigger('open');
   const { data: openedEntity, isLoading: isLoadingOpenedEntity, isError: isErrorOpenedEntity } = useGetEquipamentoById(openId);
@@ -123,7 +124,7 @@ export function EquipamentosPageClient() {
           <h2 className="text-2xl font-bold tracking-tight">Gerenciar Equipamentos</h2>
           <p className="text-muted-foreground">Visualize e gerencie os equipamentos da instituição.</p>
         </div>
-        {permissions.canCreate && (
+        {access.canCreateEquipamento && (
           <Button onClick={handleCreate}>
             <PlusCircle className="mr-2 h-4 w-4" />
             {' '}
@@ -132,7 +133,7 @@ export function EquipamentosPageClient() {
         )}
       </div>
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        {permissions.canManageTipos && (
+        {access.canManageTiposEquipamento && (
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="equipamentos">Equipamentos</TabsTrigger>
             <TabsTrigger value="tipos">Tipos de Equipamento</TabsTrigger>
@@ -161,7 +162,7 @@ export function EquipamentosPageClient() {
             />
           </div>
         </TabsContent>
-        {permissions.canManageTipos && (
+        {access.canManageTiposEquipamento && (
           <TabsContent value="tipos" className="mt-4">
             <ManageTiposTab />
           </TabsContent>
@@ -178,7 +179,7 @@ export function EquipamentosPageClient() {
           entity={sheetState.equipamento}
           entityName="Equipamento"
           initialMode={sheetMode}
-          canEdit={permissions.canEdit}
+          canEdit={access.canEditEquipamento}
           FormComponent={EquipamentoForm}
           MainDataViewComponent={EquipamentoMainDataView}
           RelationsViewComponent={EquipamentoRelationsView}

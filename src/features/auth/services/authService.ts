@@ -7,7 +7,7 @@ export const authService = {
     return apiClient.post<SignInResponse>('/auth/login', credentials);
   },
   signUp(userData: SignUpRequest) {
-    return apiClient.post<void>('/auth/cadastrar', userData);
+    return apiClient.post<void>('/auth/usuario', userData);
   },
   getMe(config?: AxiosRequestConfig) {
     return apiClient.get<MeResponse>('/auth/usuario/me', config);
