@@ -2,16 +2,17 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Espaco } from '../types';
-import { Eye, Pencil } from 'lucide-react';
+import { CalendarPlus, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 
 type GetColumnsProps = {
   onView: (espaco: Espaco) => void;
-  onEdit: (espaco: Espaco) => void;
+  onSolicitarReserva: (espaco: Espaco) => void;
 };
 
-export const getColumns = ({ onView, onEdit }: GetColumnsProps): ColumnDef<Espaco>[] => [
+export const getColumns = ({ onView, onSolicitarReserva }: GetColumnsProps): ColumnDef<Espaco>[] => [
   {
     accessorKey: 'nome',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
@@ -33,14 +34,17 @@ export const getColumns = ({ onView, onEdit }: GetColumnsProps): ColumnDef<Espac
     header: 'Ações',
     cell: ({ row }) => {
       const espaco = row.original;
+      const { canMakeReservation } = useUserAccess();
       return (
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" onClick={() => onView(espaco)}>
+          <Button variant="ghost" size="icon" onClick={() => onView(espaco)} title="Visualizar detalhes">
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => onEdit(espaco)}>
-            <Pencil className="h-4 w-4" />
-          </Button>
+          {canMakeReservation && (
+            <Button variant="ghost" size="icon" onClick={() => onSolicitarReserva(espaco)} title="Solicitar reserva">
+              <CalendarPlus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       );
     },

@@ -18,7 +18,6 @@ import { EspacosFilterBar } from './EspacosFilterBar';
 
 export function EspacosPageClient() {
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [sheetMode, setSheetMode] = useState<'view' | 'edit'>('edit');
   const [reservaDialogOpen, setReservaDialogOpen] = useState(false);
   const [selectedEspaco, setSelectedEspaco] = useState<Espaco | null>(null);
   const [filters, setFilters] = useState<Record<string, any>>({});
@@ -27,9 +26,7 @@ export function EspacosPageClient() {
     pageIndex: 0,
     pageSize: 10,
   });
-
-  const access = useUserAccess(selectedEspaco);
-
+  const access = useUserAccess();
   const handleFilterChange = (key: string, value: any) => {
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
     if (key === 'all') {
@@ -60,20 +57,13 @@ export function EspacosPageClient() {
   const [openId, clearOpenId] = useUrlTrigger('open');
   const handleCreate = () => {
     setSelectedEspaco(null);
-    setSheetMode('edit');
     setSheetOpen(true);
   };
   const handleView = (espaco: Espaco) => {
     setSelectedEspaco(espaco);
-    setSheetMode('view');
     setSheetOpen(true);
   };
-  const handleEdit = (espaco: Espaco) => {
-    setSelectedEspaco(espaco);
-    setSheetMode('edit');
-    setSheetOpen(true);
-  };
-  const columns = getColumns({ onView: handleView, onEdit: handleEdit });
+  const columns = getColumns({ onView: handleView, onSolicitarReserva: handleOpenReservaDialog });
   const pageCount = data?.totalPages ?? 0;
   const isDataLoading = isLoading || isFetching || access.isLoading;
   useEffect(() => {
@@ -89,9 +79,9 @@ export function EspacosPageClient() {
     <div className="h-full flex-1 flex-col space-y-8 p-4 md:p-8 md:flex">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Gerenciar Espaços</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Buscar Espaços</h2>
           <p className="text-muted-foreground">
-            Visualize, crie e edite os espaços da instituição.
+            Visualize os espaços disponíveis e solicite sua reserva.
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -130,8 +120,8 @@ export function EspacosPageClient() {
           onOpenChange={setSheetOpen}
           entity={selectedEspaco}
           entityName="Espaço"
-          initialMode={sheetMode}
-          canEdit={access.canEditEspacoDetails}
+          initialMode={selectedEspaco ? 'view' : 'edit'}
+          canEdit={false}
           FormComponent={EspacoForm}
           MainDataViewComponent={EspacoMainDataView}
           RelationsViewComponent={props => (

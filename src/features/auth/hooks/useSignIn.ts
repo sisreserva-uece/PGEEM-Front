@@ -26,6 +26,5 @@ export function useSignIn() {
       router.replace('/dashboard');
     },
   });
-
   return { signIn, isPending, error };
 }

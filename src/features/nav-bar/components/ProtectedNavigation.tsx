@@ -1,9 +1,9 @@
 'use client';
 
+import type { SubItem } from '@/config/routes.config';
 import type { UserRole } from '@/features/auth/types';
 import Link from 'next/link';
 import * as React from 'react';
-
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -13,11 +13,13 @@ import {
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
 import { routesConfig } from '@/config/routes.config';
+import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { useAuthStore } from '@/features/auth/store/authStore';
 
 export function ProtectedNavigation() {
   const { user, status } = useAuthStore();
-  if (status !== 'authenticated') {
+  const access = useUserAccess();
+  if (status !== 'authenticated' || access.isLoading) {
     return null;
   }
   const userRoles = user?.cargos?.map(cargo => cargo.nome) || [];
@@ -38,15 +40,19 @@ export function ProtectedNavigation() {
           <div className="w-full overflow-x-auto">
             <NavigationMenuList className="justify-start whitespace-nowrap">
               {accessibleRoutes.map((item) => {
-                const visibleSubItems = item.subItems?.filter(sub =>
-                  hasAccess(sub.allowedRoles),
-                ) || [];
+                const visibleSubItems = item.subItems?.filter((sub) => {
+                  const hasRoleAccess = hasAccess(sub.allowedRoles);
+                  if (sub.isManagerOnly) {
+                    return hasRoleAccess && access.isGestor;
+                  }
+                  return hasRoleAccess;
+                }) || [];
                 if (visibleSubItems.length > 1) {
                   return (
                     <NavigationMenuItem key={item.title}>
                       <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <ul className="grid w-[200px] gap-3 p-4">
+                        <ul className="grid w-[250px] gap-3 p-4">
                           {visibleSubItems.map(sub => (
                             <li key={sub.title}>
                               <NavigationMenuLink asChild>
@@ -60,11 +66,13 @@ export function ProtectedNavigation() {
                   );
                 }
                 if (visibleSubItems.length === 1) {
-                  const singleItem = visibleSubItems[0];
+                  const singleItem = visibleSubItems[0] as SubItem;
                   return (
                     <NavigationMenuItem key={singleItem.title}>
                       <NavigationMenuLink asChild>
-                        <Link href={singleItem.href}>{singleItem.title}</Link>
+                        <Link href={singleItem.href} className="px-3 py-2">
+                          {item.title === 'Espaços' ? singleItem.title : item.title}
+                        </Link>
                       </NavigationMenuLink>
                     </NavigationMenuItem>
                   );
@@ -73,7 +81,7 @@ export function ProtectedNavigation() {
                   return (
                     <NavigationMenuItem key={item.title}>
                       <NavigationMenuLink asChild>
-                        <Link href={item.href}>{item.title}</Link>
+                        <Link href={item.href} className="px-3 py-2">{item.title}</Link>
                       </NavigationMenuLink>
                     </NavigationMenuItem>
                   );

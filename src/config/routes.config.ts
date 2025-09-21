@@ -1,19 +1,39 @@
 import type { UserRole } from '@/features/auth/types';
 
+export type SubItem = {
+  title: string;
+  href: string;
+  allowedRoles: UserRole[];
+  isManagerOnly?: boolean;
+};
+
 export type RouteConfig = {
   title: string;
   href: string;
   path: string;
   allowedRoles: UserRole[];
-  subItems?: RouteConfig[];
+  subItems?: SubItem[];
 };
 
 export const routesConfig: RouteConfig[] = [
   {
     title: 'Espaços',
-    href: '/dashboard/espacos',
+    href: '#',
     path: '/dashboard/espacos',
     allowedRoles: [],
+    subItems: [
+      {
+        title: 'Buscar Espaços',
+        href: '/dashboard/espacos',
+        allowedRoles: [],
+      },
+      {
+        title: 'Meus Espaços Gerenciados',
+        href: '/dashboard/meus-espacos',
+        allowedRoles: [],
+        isManagerOnly: true,
+      },
+    ],
   },
   {
     title: 'Equipamentos',
@@ -24,13 +44,11 @@ export const routesConfig: RouteConfig[] = [
       {
         title: 'Gerenciar Equipamentos',
         href: '/dashboard/equipamentos?tab=equipamentos',
-        path: '/dashboard/equipamentos',
         allowedRoles: ['ADMIN', 'PROFESSOR', 'COORDENADOR'],
       },
       {
         title: 'Gerenciar Tipos',
         href: '/dashboard/equipamentos?tab=tipos',
-        path: '/dashboard/equipamentos',
         allowedRoles: ['ADMIN'],
       },
     ],

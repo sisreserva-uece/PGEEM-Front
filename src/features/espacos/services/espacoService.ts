@@ -20,10 +20,6 @@ const espacoGestorKeys = {
   lists: (espacoId: string) => [...espacoGestorKeys.all(espacoId), 'list'] as const,
 };
 
-/**
- * NEW: Fetches all EspacoGestorLink objects for the currently authenticated user.
- * This is used to determine which spaces the user manages.
- */
 export function useGetManagedEspacosForCurrentUser() {
   const { user } = useAuthStore();
   return useQuery({
@@ -35,7 +31,7 @@ export function useGetManagedEspacosForCurrentUser() {
       return fetchAllPaginated<EspacoGestorLink>('/espaco/gestor', { gestor: user.id, estaAtivo: true });
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }
 
