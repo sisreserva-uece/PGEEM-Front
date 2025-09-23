@@ -3,10 +3,10 @@
 import type { ReservaCreatePayload, ReservaFormValues } from '../validation/reservaSchema';
 import type { Espaco } from '@/features/espacos/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,9 +20,20 @@ type Props = {
   espaco: Espaco;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialDates?: { start: Date; end: Date };
 };
 
-export function SolicitarReservaDialog({ espaco, open, onOpenChange }: Props) {
+const formatDateTime = (date?: Date) => {
+  if (!date) {
+    return '';
+  }
+  return date.toLocaleString('pt-BR', {
+    dateStyle: 'full',
+    timeStyle: 'short',
+  });
+};
+
+export function SolicitarReservaDialog({ espaco, open, onOpenChange, initialDates }: Props) {
   const { user } = useAuthStore();
   const { data: projetosData, isLoading: isLoadingProjetos } = useGetProjetos({
     usuarioResponsavelId: user?.id,
@@ -32,12 +43,30 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange }: Props) {
   const form = useForm<ReservaFormValues>({
     resolver: zodResolver(reservaFormSchema),
     defaultValues: {
-      dataInicio: new Date(),
+      dataInicio: initialDates?.start,
+      dataFim: initialDates?.end,
     },
   });
 
+  const isReadyForSubmission = !!initialDates && !!user && !!espaco;
+
+  useEffect(() => {
+    if (open && initialDates) {
+      form.reset({
+        dataInicio: initialDates.start,
+        dataFim: initialDates.end,
+        projetoId: '',
+      });
+    }
+  }, [open, initialDates, form]);
+
+  const onValidationErrors = (errors: any) => {
+    toast.error('Por favor, verifique os campos do formulário.');
+  };
+
   const onSubmit = (values: ReservaFormValues) => {
-    if (!user || !espaco) {
+    if (!isReadyForSubmission) {
+      toast.error('Não foi possível processar a solicitação. As datas da reserva não foram definidas.');
       return;
     }
     if (espaco.precisaProjeto && !values.projetoId) {
@@ -46,14 +75,13 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange }: Props) {
     }
     const payload: ReservaCreatePayload = {
       ...values,
-      dataInicio: values.dataInicio.toISOString(),
-      dataFim: values.dataFim.toISOString(),
       espacoId: espaco.id,
       usuarioSolicitanteId: user.id,
       status: ReservaStatus.PENDENTE,
+      dataInicio: initialDates.start.toISOString(),
+      dataFim: initialDates.end.toISOString(),
       projetoId: values.projetoId || undefined,
     };
-
     toast.promise(createMutation.mutateAsync(payload), {
       loading: 'Enviando solicitação...',
       success: () => {
@@ -61,7 +89,9 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange }: Props) {
         form.reset();
         return 'Solicitação de reserva enviada com sucesso!';
       },
-      error: 'Falha ao enviar solicitação.',
+      error: (err) => {
+        return 'Falha ao enviar solicitação.';
+      },
     });
   };
 
@@ -69,39 +99,38 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            Solicitar Reserva para:
+          <DialogTitle>Confirmar Solicitação de Reserva</DialogTitle>
+          <DialogDescription>
+            Confirme os detalhes da sua solicitação para
             {' '}
-            {espaco.nome}
-          </DialogTitle>
-          <DialogDescription>Preencha as datas e horários desejados.</DialogDescription>
+            <span className="font-semibold">{espaco.nome}</span>
+            .
+          </DialogDescription>
         </DialogHeader>
+
+        <div className="space-y-4 rounded-md border p-4">
+          {initialDates
+            ? (
+                <>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">Início da Reserva</p>
+                    <p className="text-sm text-gray-600">{formatDateTime(initialDates?.start)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">Fim da Reserva</p>
+                    <p className="text-sm text-gray-600">{formatDateTime(initialDates?.end)}</p>
+                  </div>
+                </>
+              )
+            : (
+                <p className="text-sm font-medium text-destructive">
+                  Datas não selecionadas. Por favor, selecione um período no calendário para continuar.
+                </p>
+              )}
+        </div>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="dataInicio"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Início da Reserva</FormLabel>
-                    <DateTimePicker mode="datetime" value={field.value} onChange={field.onChange} />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="dataFim"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fim da Reserva</FormLabel>
-                    <DateTimePicker mode="datetime" value={field.value} onChange={field.onChange} />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <form onSubmit={form.handleSubmit(onSubmit, onValidationErrors)} className="space-y-4">
             {espaco.precisaProjeto && (
               <FormField
                 control={form.control}
@@ -128,7 +157,7 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange }: Props) {
             )}
             <DialogFooter className="pt-4">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button type="submit" disabled={createMutation.isPending || !isReadyForSubmission}>
                 {createMutation.isPending ? 'Enviando...' : 'Confirmar Solicitação'}
               </Button>
             </DialogFooter>

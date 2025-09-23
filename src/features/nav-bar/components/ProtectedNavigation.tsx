@@ -71,7 +71,7 @@ export function ProtectedNavigation() {
                     <NavigationMenuItem key={singleItem.title}>
                       <NavigationMenuLink asChild>
                         <Link href={singleItem.href} className="px-3 py-2">
-                          {item.title === 'Espaços' ? singleItem.title : item.title}
+                          {item.title}
                         </Link>
                       </NavigationMenuLink>
                     </NavigationMenuItem>

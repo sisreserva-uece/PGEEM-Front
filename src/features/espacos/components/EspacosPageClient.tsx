@@ -18,6 +18,7 @@ import { EspacosFilterBar } from './EspacosFilterBar';
 
 export function EspacosPageClient() {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetMode, setSheetMode] = useState<'view' | 'edit'>('edit');
   const [reservaDialogOpen, setReservaDialogOpen] = useState(false);
   const [selectedEspaco, setSelectedEspaco] = useState<Espaco | null>(null);
   const [filters, setFilters] = useState<Record<string, any>>({});
@@ -26,7 +27,10 @@ export function EspacosPageClient() {
     pageIndex: 0,
     pageSize: 10,
   });
-  const access = useUserAccess();
+
+  // The access hook determines the user's permissions.
+  const access = useUserAccess(selectedEspaco);
+
   const handleFilterChange = (key: string, value: any) => {
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
     if (key === 'all') {
@@ -57,13 +61,20 @@ export function EspacosPageClient() {
   const [openId, clearOpenId] = useUrlTrigger('open');
   const handleCreate = () => {
     setSelectedEspaco(null);
+    setSheetMode('edit');
     setSheetOpen(true);
   };
   const handleView = (espaco: Espaco) => {
     setSelectedEspaco(espaco);
+    setSheetMode('view');
     setSheetOpen(true);
   };
-  const columns = getColumns({ onView: handleView, onSolicitarReserva: handleOpenReservaDialog });
+  const handleEdit = (espaco: Espaco) => {
+    setSelectedEspaco(espaco);
+    setSheetMode('edit');
+    setSheetOpen(true);
+  };
+  const columns = getColumns({ onView: handleView, onEdit: handleEdit });
   const pageCount = data?.totalPages ?? 0;
   const isDataLoading = isLoading || isFetching || access.isLoading;
   useEffect(() => {
@@ -120,8 +131,8 @@ export function EspacosPageClient() {
           onOpenChange={setSheetOpen}
           entity={selectedEspaco}
           entityName="Espaço"
-          initialMode={selectedEspaco ? 'view' : 'edit'}
-          canEdit={false}
+          initialMode={sheetMode}
+          canEdit={access.canEditEspacoDetails}
           FormComponent={EspacoForm}
           MainDataViewComponent={EspacoMainDataView}
           RelationsViewComponent={props => (

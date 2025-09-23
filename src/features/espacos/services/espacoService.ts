@@ -120,6 +120,6 @@ export function useGetAllEspacos() {
   return useQuery({
     queryKey: ['allEspacos'],
     queryFn: () => fetchAllPaginated<Espaco>('espaco', {}),
-    staleTime: 1000 * 60 * 5, // Cache for 5 mins
+    staleTime: 1000 * 60 * 5,
   });
 }

@@ -25,7 +25,7 @@ export const routesConfig: RouteConfig[] = [
       {
         title: 'Buscar Espaços',
         href: '/dashboard/espacos',
-        allowedRoles: [],
+        allowedRoles: ['ADMIN', 'PROFESSOR', 'PESQUISADOR', 'COORDENADOR'],
       },
       {
         title: 'Meus Espaços Gerenciados',

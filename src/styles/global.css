@@ -140,3 +140,51 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
+
+:root {
+  --fc-border-color: var(--border);
+  --fc-day-bg-color: var(--background);
+  --fc-today-bg-color: var(--accent);
+  --fc-list-even-bg-color: var(--accent);
+  --fc-neutral-bg-color: var(--muted);
+}
+
+.fc .fc-button {
+  @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  @apply px-4 py-2 h-10;
+  border: none;
+}
+
+.fc .fc-button-primary:disabled {
+  @apply bg-primary/50;
+}
+
+.fc .fc-button-active {
+  @apply bg-primary/80;
+}
+
+.fc {
+  @apply rounded-lg border bg-card text-card-foreground;
+}
+
+.fc .fc-toolbar.fc-header-toolbar {
+  @apply mb-4 p-2;
+}
+
+.fc .fc-toolbar-title {
+  @apply text-lg font-bold tracking-tight;
+}
+
+.fc .fc-event {
+  @apply rounded-md border text-sm p-1;
+  cursor: pointer;
+}
+
+.fc .fc-timegrid-slot-label-frame {
+  @apply text-xs text-muted-foreground;
+}
+
+.fc .fc-timegrid-axis-frame {
+  @apply text-xs text-muted-foreground;
+}

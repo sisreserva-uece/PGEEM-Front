@@ -1,7 +1,7 @@
 'use client';
 
 import type { Espaco } from '../types';
-import { Loader2 } from 'lucide-react';
+import { CalendarDays, HardDrive, Info, ListChecks, Loader2, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ResizableHandle,
@@ -12,8 +12,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { useGetManagedEspacosForCurrentUser } from '@/features/espacos/services/espacoService';
-import { SolicitacoesPendentesTab } from '@/features/reservas/components/SolicitacoesPendentesTab'; // <-- IMPORT THE NEW COMPONENT
+import { SolicitacoesPendentesTab } from '@/features/reservas/components/SolicitacoesPendentesTab';
 import { cn } from '@/lib/utils';
+import { EspacoAgendaTab } from './EspacoAgendaTab';
 import { EspacoDetailsForm } from './EspacoDetailsForm';
 import { ManageEquipamentosTab } from './ManageEquipamentosTab';
 import { ManageGestoresTab } from './ManageGestoresTab';
@@ -36,7 +37,6 @@ export function MeusEspacosPageClient() {
   }
 
   const handleSuccess = () => {
-    // Invalidate queries if needed, e.g., refetch managed espacos list if name changes
   };
 
   return (
@@ -73,15 +73,35 @@ export function MeusEspacosPageClient() {
                       <h2 className="text-2xl font-bold tracking-tight">{selectedEspaco.nome}</h2>
                       <p className="text-muted-foreground mb-6">Gerencie as solicitações, informações e recursos do seu espaço.</p>
                       <Tabs defaultValue="solicitacoes" className="w-full">
-                        <TabsList className="grid w-full grid-cols-4">
-                          <TabsTrigger value="solicitacoes">Solicitações</TabsTrigger>
-                          <TabsTrigger value="informacoes">Informações</TabsTrigger>
-                          <TabsTrigger value="equipamentos">Equipamentos</TabsTrigger>
-                          <TabsTrigger value="gestores" disabled={!access.canManageEspacoGestores}>Gestores</TabsTrigger>
+                        <TabsList className="grid w-full grid-cols-5">
+                          <TabsTrigger value="solicitacoes">
+                            <ListChecks className="mr-2 h-4 w-4" />
+                            Solicitações
+                          </TabsTrigger>
+                          <TabsTrigger value="agenda">
+                            <CalendarDays className="mr-2 h-4 w-4" />
+                            Agenda
+                          </TabsTrigger>
+                          <TabsTrigger value="informacoes">
+                            <Info className="mr-2 h-4 w-4" />
+                            Informações
+                          </TabsTrigger>
+                          <TabsTrigger value="equipamentos">
+                            <HardDrive className="mr-2 h-4 w-4" />
+                            Equipamentos
+                          </TabsTrigger>
+                          <TabsTrigger value="gestores" disabled={!access.canManageEspacoGestores}>
+                            <User className="mr-2 h-4 w-4" />
+                            Gestores
+                          </TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="solicitacoes" className="mt-6">
                           <SolicitacoesPendentesTab espaco={selectedEspaco} />
+                        </TabsContent>
+
+                        <TabsContent value="agenda" className="mt-6">
+                          <EspacoAgendaTab espaco={selectedEspaco} />
                         </TabsContent>
 
                         <TabsContent value="informacoes" className="mt-6">

@@ -90,7 +90,7 @@ export function ManageEquipamentosTab({ espacoId }: ManageEquipamentosTabProps) 
     });
     return { specificItems: specific, genericItemsGrouped: Array.from(genericMap.entries()), linkedSpecificIds: ids };
   }, [linkedEquipamentos]);
-  const handleUnlinkSpecific = (link: any) => { // Pass the whole link object
+  const handleUnlinkSpecific = (link: any) => {
     toast.promise(
       unlinkMutation.mutateAsync({
         equipamentoEspacoIds: [link.id],

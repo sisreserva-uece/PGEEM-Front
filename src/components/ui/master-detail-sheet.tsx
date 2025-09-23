@@ -42,9 +42,13 @@ export function MasterDetailSheet<T>({
     if (isCreateMode) {
       return `Preencha os detalhes para registrar um novo ${entityName}.`;
     }
-    return isEditMode
-      ? `Atualize as informações do ${entityName} abaixo.`
-      : `Visualize as informações. Clique em "Editar" para modificar.`;
+    if (isEditMode) {
+      return `Atualize as informações do ${entityName} abaixo.`;
+    }
+    if (canEdit) {
+      return 'Visualize as informações. Clique em "Editar" para modificar.';
+    }
+    return 'Visualize as informações e relações vinculadas.';
   };
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
@@ -75,7 +79,6 @@ export function MasterDetailSheet<T>({
                       <>
                         <Separator />
                         <section>
-                          <h3 className="text-lg font-semibold tracking-tight text-foreground mb-4">Relações Vinculadas</h3>
                           <RelationsViewComponent entity={entity} />
                         </section>
                       </>

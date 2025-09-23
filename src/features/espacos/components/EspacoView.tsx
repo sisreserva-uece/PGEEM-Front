@@ -1,17 +1,16 @@
 'use client';
 
 import type { Espaco } from '../types';
-import { AlertTriangle, CalendarPlus, HardDrive, ShieldCheck, User, Wrench, XCircle } from 'lucide-react';
+import { AlertTriangle, CalendarDays, HardDrive, ShieldCheck, User, Wrench, XCircle } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { RelatedItemLink } from '@/components/ui/related-item-link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { InfoItem } from '@/features/equipamentos/components/EquipamentoView';
 import { EquipamentoStatus } from '@/features/equipamentos/types';
 import { useGetEspacoGestores, useGetLinkedEquipamentos } from '../services/espacoService';
+import { EspacoAgendaTab } from './EspacoAgendaTab';
 
 const getStatusInfo = (status: EquipamentoStatus) => {
   switch (status) {
@@ -39,11 +38,9 @@ export function EspacoMainDataView({ entity: espaco }: { entity: Espaco }) {
 
 type EspacoRelationsViewProps = {
   entity: Espaco;
-  onSolicitarReserva: (espaco: Espaco) => void;
 };
 
-export function EspacoRelationsView({ entity: espaco, onSolicitarReserva }: EspacoRelationsViewProps) {
-  const access = useUserAccess();
+export function EspacoRelationsView({ entity: espaco }: EspacoRelationsViewProps) {
   const { data: gestorLinks, isLoading: isLoadingGestores } = useGetEspacoGestores(espaco.id);
   const { data: equipamentoLinks, isLoading: isLoadingEquipamentos } = useGetLinkedEquipamentos(espaco.id);
   const { specificItems, genericItemsGrouped } = useMemo(() => {
@@ -66,27 +63,30 @@ export function EspacoRelationsView({ entity: espaco, onSolicitarReserva }: Espa
   const activeGestores = gestorLinks?.filter(link => link.estaAtivo) ?? [];
   return (
     <>
-      {access.canMakeReservation && (
-        <div className="my-4">
-          <Button className="w-full" onClick={() => onSolicitarReserva(espaco)}>
-            <CalendarPlus className="mr-2 h-4 w-4" />
-            Solicitar Reserva
-          </Button>
-        </div>
-      )}
-      <Tabs defaultValue="gestores" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="agenda" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="agenda">
+            <CalendarDays className="mr-2 h-4 w-4" />
+            Agenda
+          </TabsTrigger>
           <TabsTrigger value="gestores">
+            <User className="mr-2 h-4 w-4" />
             Gestores (
             {isLoadingGestores ? '...' : activeGestores.length}
             )
           </TabsTrigger>
           <TabsTrigger value="equipamentos">
+            <HardDrive className="mr-2 h-4 w-4" />
             Equipamentos (
             {isLoadingEquipamentos ? '...' : equipamentoLinks?.length ?? 0}
             )
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="agenda" className="mt-4">
+          <EspacoAgendaTab espaco={espaco} />
+        </TabsContent>
+
         <TabsContent value="gestores" className="mt-4">
           <div className="space-y-2 rounded-lg border p-2 min-h-[100px]">
             {isLoadingGestores

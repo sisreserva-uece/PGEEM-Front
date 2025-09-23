@@ -1,3 +1,5 @@
+import type { UseMutationOptions } from '@tanstack/react-query';
+import type { AxiosResponse } from 'axios';
 import type { PaginatedResponse } from '@/types/api';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api/apiClient';
@@ -22,7 +24,9 @@ export function createCrudHooks<TData, TCreateDto = any, TUpdateDto = any>(entit
     });
   };
 
-  const useCreate = () => {
+  const useCreate = (
+    options?: UseMutationOptions<AxiosResponse<any, any>, Error, TCreateDto>,
+  ) => {
     const queryClient = useQueryClient();
     return useMutation({
       mutationFn: (newEntity: TCreateDto) => {
@@ -31,10 +35,13 @@ export function createCrudHooks<TData, TCreateDto = any, TUpdateDto = any>(entit
       onSuccess: async () => {
         await queryClient.invalidateQueries({ queryKey: queryKeys.lists() });
       },
+      ...options,
     });
   };
 
-  const useUpdate = () => {
+  const useUpdate = (
+    options?: UseMutationOptions<AxiosResponse<any, any>, Error, { id: string } & TUpdateDto>,
+  ) => {
     const queryClient = useQueryClient();
     return useMutation({
       mutationFn: ({ id, ...updatedEntity }: { id: string } & TUpdateDto) => {
@@ -43,10 +50,12 @@ export function createCrudHooks<TData, TCreateDto = any, TUpdateDto = any>(entit
       onSuccess: async () => {
         await queryClient.invalidateQueries({ queryKey: queryKeys.lists() });
       },
+      ...options,
     });
   };
-
-  const useDelete = () => {
+  const useDelete = (
+    options?: UseMutationOptions<AxiosResponse<any, any>, Error, string>,
+  ) => {
     const queryClient = useQueryClient();
     return useMutation({
       mutationFn: (id: string) => {
@@ -55,6 +64,7 @@ export function createCrudHooks<TData, TCreateDto = any, TUpdateDto = any>(entit
       onSuccess: async () => {
         await queryClient.invalidateQueries({ queryKey: queryKeys.lists() });
       },
+      ...options,
     });
   };
 
