@@ -54,6 +54,12 @@ export const routesConfig: RouteConfig[] = [
     ],
   },
   {
+    title: 'Complexos',
+    href: '/dashboard/complexos',
+    path: '/dashboard/complexos',
+    allowedRoles: ['ADMIN', 'COORDENADOR'],
+  },
+  {
     title: 'Comitês',
     href: '/dashboard/comites',
     path: '/dashboard/comites',
