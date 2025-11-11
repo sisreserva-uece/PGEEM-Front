@@ -1,5 +1,10 @@
-import type { Espaco, EspacoGestorLink } from '../types';
-import type { EspacoCreatePayload, EspacoUpdatePayload } from '../validation/espacoSchema';
+import type { Espaco, EspacoGestorLink, TipoEspaco } from '../types';
+import type {
+  EspacoCreatePayload,
+  EspacoUpdatePayload,
+  TipoEspacoCreatePayload,
+  TipoEspacoUpdatePayload,
+} from '../validation/espacoSchema';
 import type { Usuario } from '@/features/usuarios/types';
 import type { ApiSelectOption, PaginatedResponse } from '@/types/api';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +19,28 @@ export const {
   useUpdate: useUpdateEspaco,
   useGetById: useGetEspacoById,
 } = createCrudHooks<Espaco, EspacoCreatePayload, EspacoUpdatePayload>('espaco');
+
+const { useGet: baseUseGetTiposEspaco } = createCrudHooks<TipoEspaco>('espaco/tipo');
+export const useGetTiposEspaco = baseUseGetTiposEspaco;
+
+function useTipoEspacoMutation(mutationFn: any) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['espaco/tipo'] });
+      queryClient.invalidateQueries({ queryKey: ['selectOptions', 'tiposEspaco'] });
+    },
+  });
+}
+
+export const useCreateTipoEspaco = () => useTipoEspacoMutation(
+  (data: TipoEspacoCreatePayload) => apiClient.post('/espaco/tipo', data),
+);
+
+export const useUpdateTipoEspaco = () => useTipoEspacoMutation(
+  (data: { id: string } & TipoEspacoUpdatePayload) => apiClient.put(`/espaco/tipo/${data.id}`, data),
+);
 
 const espacoGestorKeys = {
   all: (espacoId: string) => ['espacoGestores', espacoId] as const,

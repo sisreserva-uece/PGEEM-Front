@@ -14,6 +14,11 @@ export type Espaco = {
   tipoAtividade: ApiSelectOption;
 };
 
+export type TipoEspaco = {
+  id: string;
+  nome: string;
+};
+
 export type EspacoGestorLink = {
   id: string;
   espaco: Espaco;

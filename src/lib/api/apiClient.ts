@@ -44,8 +44,8 @@ apiClient.interceptors.response.use(
     if (error.response && shouldShowToast) {
       const errorData = error.response.data as { error?: { message?: string } };
       const errorMessage
-                = errorData?.error?.message
-                  || 'Um erro inesperado ocorreu, por favor tente novamente ou contate o suporte.';
+        = errorData?.error?.message
+          || 'Um erro inesperado ocorreu, por favor tente novamente ou contate o suporte.';
       toast.error(errorMessage);
     }
     return Promise.reject(error);

@@ -18,6 +18,11 @@ export const espacoUpdateSchema = espacoFormSchema.pick({
   precisaProjeto: true,
 });
 
-export type EspacoCreatePayload = z.infer<typeof espacoFormSchema>;
+export const tipoEspacoFormSchema = z.object({
+  nome: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres.' }).max(100),
+});
 
+export type TipoEspacoCreatePayload = z.infer<typeof tipoEspacoFormSchema>;
+export type TipoEspacoUpdatePayload = Partial<TipoEspacoCreatePayload>;
+export type EspacoCreatePayload = z.infer<typeof espacoFormSchema>;
 export type EspacoUpdatePayload = z.infer<typeof espacoUpdateSchema>;

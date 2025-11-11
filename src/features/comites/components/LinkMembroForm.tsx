@@ -62,15 +62,12 @@ export function LinkMembroForm({ comiteId, entity: membro, onSuccess, existingMe
           isTitular: values.isTitular,
         })
       : await linkMutation.mutateAsync({ ...values, comiteId });
-    try {
-      toast.promise(mutationPromise, {
-        loading: `Salvando alterações...`,
-        success: `Membro ${isEditMode ? 'atualizado' : 'vinculado'} com sucesso!`,
-        error: 'Erro ao salvar alterações.',
-      });
-      onSuccess();
-    } catch (error) {
-    }
+    toast.promise(mutationPromise, {
+      loading: `Salvando alterações...`,
+      success: `Membro ${isEditMode ? 'atualizado' : 'vinculado'} com sucesso!`,
+      error: 'Erro ao salvar alterações.',
+    });
+    onSuccess();
   };
   const availableUsers = useMemo(() => {
     if (!usersData?.content) {

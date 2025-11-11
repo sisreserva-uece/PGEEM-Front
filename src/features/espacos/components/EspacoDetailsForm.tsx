@@ -3,15 +3,17 @@
 import type { z } from 'zod';
 import type { Espaco } from '@/features/espacos/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Info } from 'lucide-react';
+import { Check, ChevronsUpDown, Info } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import { useCreateEspaco, useGetSelectOptions, useUpdateEspaco } from '../services/espacoService';
 import { espacoFormSchema } from '../validation/espacoSchema';
 
@@ -51,10 +53,10 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
       : initialValues,
   });
 
-  const { data: departamentos } = useGetSelectOptions('/departamento', 'departamentos');
-  const { data: localizacoes } = useGetSelectOptions('/localizacao', 'localizacoes');
-  const { data: tiposEspaco } = useGetSelectOptions('/espaco/tipo', 'tiposEspaco');
-  const { data: tiposAtividade } = useGetSelectOptions('/atividade/tipo', 'tiposAtividade');
+  const { data: departamentos = [] } = useGetSelectOptions('/departamento', 'departamentos');
+  const { data: localizacoes = [] } = useGetSelectOptions('/localizacao', 'localizacoes');
+  const { data: tiposEspaco = [] } = useGetSelectOptions('/espaco/tipo', 'tiposEspaco');
+  const { data: tiposAtividade = [] } = useGetSelectOptions('/atividade/tipo', 'tiposAtividade');
   const createMutation = useCreateEspaco();
   const updateMutation = useUpdateEspaco();
 
@@ -103,89 +105,178 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
             control={form.control}
             name="departamentoId"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>Departamento</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um departamento" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {departamentos?.map(dep => (
-                      <SelectItem key={dep.id} value={dep.id}>{dep.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
+                        disabled={isEditMode}
+                      >
+                        {field.value ? departamentos.find(dep => dep.id === field.value)?.nome : 'Selecione um departamento'}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar departamento..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum departamento encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {departamentos.map(dep => (
+                            <CommandItem
+                              value={dep.nome}
+                              key={dep.id}
+                              onSelect={() => field.onChange(dep.id)}
+                            >
+                              <Check className={cn('mr-2 h-4 w-4', dep.id === field.value ? 'opacity-100' : 'opacity-0')} />
+                              {dep.nome}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="localizacaoId"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>Localização</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma localização" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {localizacoes?.map(loc => (
-                      <SelectItem key={loc.id} value={loc.id}>{loc.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
+                        disabled={isEditMode}
+                      >
+                        {field.value ? localizacoes.find(loc => loc.id === field.value)?.nome : 'Selecione uma localização'}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar localização..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhuma localização encontrada.</CommandEmpty>
+                        <CommandGroup>
+                          {localizacoes.map(loc => (
+                            <CommandItem
+                              value={loc.nome}
+                              key={loc.id}
+                              onSelect={() => field.onChange(loc.id)}
+                            >
+                              <Check className={cn('mr-2 h-4 w-4', loc.id === field.value ? 'opacity-100' : 'opacity-0')} />
+                              {loc.nome}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="tipoEspacoId"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>Tipo de Espaço</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um tipo de espaço" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {tiposEspaco?.map(tipo => (
-                      <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
+                        disabled={isEditMode}
+                      >
+                        {field.value ? tiposEspaco.find(tipo => tipo.id === field.value)?.nome : 'Selecione um tipo de espaço'}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar tipo..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhum tipo encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {tiposEspaco.map(tipo => (
+                            <CommandItem
+                              value={tipo.nome}
+                              key={tipo.id}
+                              onSelect={() => field.onChange(tipo.id)}
+                            >
+                              <Check className={cn('mr-2 h-4 w-4', tipo.id === field.value ? 'opacity-100' : 'opacity-0')} />
+                              {tipo.nome}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="tipoAtividadeId"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>Tipo de Atividade Principal</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um tipo de atividade" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {tiposAtividade?.map(tipo => (
-                      <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
+                        disabled={isEditMode}
+                      >
+                        {field.value ? tiposAtividade.find(tipo => tipo.id === field.value)?.nome : 'Selecione um tipo de atividade'}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Buscar atividade..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhuma atividade encontrada.</CommandEmpty>
+                        <CommandGroup>
+                          {tiposAtividade.map(tipo => (
+                            <CommandItem
+                              value={tipo.nome}
+                              key={tipo.id}
+                              onSelect={() => field.onChange(tipo.id)}
+                            >
+                              <Check className={cn('mr-2 h-4 w-4', tipo.id === field.value ? 'opacity-100' : 'opacity-0')} />
+                              {tipo.nome}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
