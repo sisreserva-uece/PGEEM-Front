@@ -56,7 +56,7 @@ export function useLinkEquipamentosToEspaco() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['equipamentoEspaco', variables.espacoId] });
-      variables.equipamentos.forEach((equip) => {
+      variables.equipamentos.forEach(() => {
         queryClient.invalidateQueries({ queryKey: ['espacoForEquipamento'] });
       });
     },

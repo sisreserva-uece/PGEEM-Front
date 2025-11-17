@@ -7,21 +7,18 @@ import { authService } from '../services/authService';
 
 export function useSignIn() {
   const router = useRouter();
-  const setAuth = useAuthStore(state => state.setAuth);
+  const setAccessToken = useAuthStore(state => state.setAccessToken);
   const {
     mutate: signIn,
     isPending,
     error,
   } = useMutation({
-    mutationFn: async (credentials: SignInFormValues) => {
-      const loginResponse = await authService.signIn(credentials);
-      const accessToken = loginResponse.data.data?.token as string;
-      useAuthStore.getState().setAccessToken(accessToken);
-      const userResponse = await authService.getMe();
-      return { user: userResponse.data.data!, accessToken };
+    mutationFn: (credentials: SignInFormValues) => {
+      return authService.signIn(credentials);
     },
-    onSuccess: ({ user, accessToken }) => {
-      setAuth(user, accessToken);
+    onSuccess: (response) => {
+      const accessToken = response.data.data?.token as string;
+      setAccessToken(accessToken);
       toast.success('Login realizado com sucesso!');
       router.replace('/dashboard');
     },
