@@ -1,11 +1,20 @@
-docker build \
---build-arg NEXT_PUBLIC_API_BASE_URL="https://api.college.edu" \
---build-arg NEXT_PUBLIC_APP_URL="https://app.college.edu" \
--t pgeem-frontend .
+# 1. Create your .env file
 
+```
+cp .env.example .env
+```
 
-docker run -d \
--p 3000:3000 \
--e JWT_SECRET="JWT_SECRET" \
---name pgeem-app \
-pgeem-frontend
+# 2. Build the image
+
+```
+docker build -t pgeem-frontend .
+```
+
+# 3. Run the container
+
+```
+docker run -p 3000:3000 --name pgeem-app pgeem-frontend
+```
+
+---
+

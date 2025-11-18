@@ -25,7 +25,7 @@ export const routesConfig: RouteConfig[] = [
       {
         title: 'Buscar Espaços',
         href: '/dashboard/espacos',
-        allowedRoles: ['ADMIN', 'PROFESSOR', 'PESQUISADOR', 'COORDENADOR'],
+        allowedRoles: ['ADMIN', 'USUARIO_INTERNO', 'USUARIO_EXTERNO'],
       },
       {
         title: 'Meus Espaços Gerenciados',
@@ -39,12 +39,12 @@ export const routesConfig: RouteConfig[] = [
     title: 'Equipamentos',
     href: '#',
     path: '/dashboard/equipamentos',
-    allowedRoles: ['ADMIN', 'PROFESSOR', 'COORDENADOR'],
+    allowedRoles: ['ADMIN', 'USUARIO_INTERNO', 'USUARIO_EXTERNO'],
     subItems: [
       {
         title: 'Gerenciar Equipamentos',
         href: '/dashboard/equipamentos?tab=equipamentos',
-        allowedRoles: ['ADMIN', 'PROFESSOR', 'COORDENADOR'],
+        allowedRoles: ['ADMIN', 'USUARIO_INTERNO', 'USUARIO_EXTERNO'],
       },
       {
         title: 'Gerenciar Tipos',
@@ -57,13 +57,13 @@ export const routesConfig: RouteConfig[] = [
     title: 'Complexos',
     href: '/dashboard/complexos',
     path: '/dashboard/complexos',
-    allowedRoles: ['ADMIN', 'COORDENADOR'],
+    allowedRoles: ['ADMIN', 'USUARIO_INTERNO', 'USUARIO_EXTERNO'],
   },
   {
     title: 'Comitês',
     href: '/dashboard/comites',
     path: '/dashboard/comites',
-    allowedRoles: ['ADMIN', 'COORDENADOR'],
+    allowedRoles: ['ADMIN', 'USUARIO_INTERNO', 'USUARIO_EXTERNO'],
   },
   {
     title: 'Usuários',
@@ -75,12 +75,12 @@ export const routesConfig: RouteConfig[] = [
     title: 'Projetos',
     href: '/dashboard/projetos',
     path: '/dashboard/projetos',
-    allowedRoles: ['ADMIN', 'PROFESSOR', 'PESQUISADOR'],
+    allowedRoles: ['ADMIN', 'USUARIO_INTERNO', 'USUARIO_EXTERNO'],
   },
   {
     title: 'Reservas',
     href: '/dashboard/reservas',
     path: '/dashboard/reservas',
-    allowedRoles: ['ADMIN', 'PROFESSOR', 'PESQUISADOR'],
+    allowedRoles: ['ADMIN', 'USUARIO_INTERNO', 'USUARIO_EXTERNO'],
   },
 ];

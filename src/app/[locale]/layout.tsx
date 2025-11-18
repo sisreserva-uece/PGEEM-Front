@@ -31,8 +31,8 @@ export default async function RootLayout(props: {
   return (
     <html lang={locale} className={`${inter.className}`}>
       <body suppressHydrationWarning className="antialiased">
-        <SessionProvider>
-          <AppProviders>
+        <AppProviders>
+          <SessionProvider>
             <NextIntlClientProvider locale={locale} messages={messages}>
               <div className="flex min-h-screen flex-col overflow-x-hidden">
                 <Header />
@@ -46,8 +46,8 @@ export default async function RootLayout(props: {
               </div>
               <Toaster richColors />
             </NextIntlClientProvider>
-          </AppProviders>
-        </SessionProvider>
+          </SessionProvider>
+        </AppProviders>
       </body>
     </html>
   );

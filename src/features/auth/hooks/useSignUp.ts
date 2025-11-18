@@ -11,7 +11,6 @@ export function useSignUp() {
       const requestData: SignUpRequest = {
         ...data,
         cargosNome: [data.cargosNome],
-        instituicaoId: process.env.NEXT_PUBLIC_DEFAULT_INSTITUICAO_ID as string,
         refreshTokenEnabled: true,
       };
       return authService.signUp(requestData);

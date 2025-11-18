@@ -8,7 +8,7 @@ import { fetchAllPaginated } from '@/lib/api/fetchAllPaginated';
 import { createCrudHooks } from '@/lib/hooks/useCrud';
 import { ReservaStatus } from '../types';
 
-const { useCreate: useGenericCreateReserva } = createCrudHooks<
+const { useCreate: useGenericCreateReserva, useGet: useGetReservas } = createCrudHooks<
   Reserva,
   ReservaCreatePayload
 >('solicitacao-reserva');
@@ -21,6 +21,15 @@ export function useCreateReserva() {
       queryClient.invalidateQueries({ queryKey: ['reservas'] });
     },
   });
+}
+
+export function useGetMyReservations(params: {
+  page: number;
+  size: number;
+  sortField: string;
+  sortOrder: 'asc' | 'desc';
+}) {
+  return useGetReservas(params);
 }
 
 export function useGetSolicitacoesByEspaco(params: Record<string, any>) {

@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormHeader } from '@/components/ui/typography';
+import { useGetAllInstituicoes } from '@/features/instituicao/hooks/useGetAllInstituicoes';
 import { useRouter } from '@/lib/i18nNavigation';
 import { useSignUp } from '../hooks/useSignUp';
 import { signUpSchema } from '../types';
@@ -16,6 +17,7 @@ import { signUpSchema } from '../types';
 export function SignUpForm() {
   const router = useRouter();
   const { signUp, isPending } = useSignUp();
+  const { data: instituicoes, isLoading: isLoadingInstituicoes } = useGetAllInstituicoes();
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -28,7 +30,8 @@ export function SignUpForm() {
       telefone: '',
       documentoFiscal: '',
       fotoPerfil: '',
-      cargosNome: 'ALUNO',
+      cargosNome: 'USUARIO_INTERNO',
+      instituicaoId: '',
     },
   });
 
@@ -145,7 +148,28 @@ export function SignUpForm() {
                   )}
                 />
               </div>
-
+              <FormField
+                control={form.control}
+                name="instituicaoId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instituição *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending || isLoadingInstituicoes}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={isLoadingInstituicoes ? 'Carregando...' : 'Selecione sua instituição'} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {instituicoes?.map(inst => (
+                          <SelectItem key={inst.id} value={inst.id}>{inst.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -158,9 +182,8 @@ export function SignUpForm() {
                           <SelectTrigger><SelectValue placeholder="Selecione seu cargo" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="ALUNO">Aluno</SelectItem>
-                          <SelectItem value="PROFESSOR">Professor</SelectItem>
-                          <SelectItem value="FUNCIONARIO">Funcionário</SelectItem>
+                          <SelectItem value="USUARIO_INTERNO">Usuário Interno</SelectItem>
+                          <SelectItem value="USUARIO_EXTERNO">Usuário Externo</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

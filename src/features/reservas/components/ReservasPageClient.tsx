@@ -15,15 +15,12 @@ export function ReservasPageClient() {
   const [selectedReserva, setSelectedReserva] = useState<Reserva | null>(null);
   const [sorting, setSorting] = useState<SortingState>([{ id: 'dataInicio', desc: true }]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-
   const { data, isLoading, isError, isFetching } = useGetMyReservations({
     page: pagination.pageIndex,
     size: pagination.pageSize,
     sortField: sorting[0]?.id ?? 'dataInicio',
     sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
   });
-
-  // Fetch all espacos to create a lookup map
   const { data: allEspacos, isLoading: isLoadingEspacos } = useGetAllEspacos();
   const espacosMap = useMemo(() => {
     if (!allEspacos) {
@@ -31,15 +28,12 @@ export function ReservasPageClient() {
     }
     return new Map(allEspacos.map(e => [e.id, e.nome]));
   }, [allEspacos]);
-
   const handleView = (reserva: Reserva) => {
     setSelectedReserva(reserva);
     setSheetOpen(true);
   };
-
   const columns = getReservaColumns({ onView: handleView, espacosMap });
   const isDataLoading = isLoading || isFetching || isLoadingEspacos;
-
   return (
     <div className="h-full flex-1 flex-col space-y-8 p-4 md:p-8 md:flex">
       <div className="flex items-center justify-between">

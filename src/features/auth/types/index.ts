@@ -2,14 +2,8 @@ import { z } from 'zod';
 
 export const ROLES = [
   'ADMIN',
-  'USUARIO',
-  'ALUNO',
-  'PROFESSOR',
-  'TECNICO',
-  'COMISSIONADO',
-  'PESQUISADOR',
-  'COORDENADOR',
-  'SUPORTE',
+  'USUARIO_INTERNO',
+  'USUARIO_EXTERNO',
 ] as const;
 
 export type UserRole = (typeof ROLES)[number];
@@ -34,6 +28,7 @@ export const signUpSchema = z
     telefone: z.string().min(10, 'Telefone inválido'),
     fotoPerfil: z.string().url('URL inválida').optional().or(z.literal('')),
     cargosNome: z.enum(ROLES),
+    instituicaoId: z.string({ required_error: 'Por favor, selecione uma instituição.' }),
   })
   .refine(data => data.senha === data.confirmSenha, {
     message: 'As senhas não coincidem',
