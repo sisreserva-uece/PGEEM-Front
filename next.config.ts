@@ -11,6 +11,7 @@ const bundleAnalyzer = withBundleAnalyzer({
 /** @type {import('next').NextConfig} */
 export default bundleAnalyzer(
   withNextIntl({
+    output: 'standalone',
     eslint: {
       dirs: ['.'],
       ignoreDuringBuilds: true,
@@ -28,8 +29,11 @@ export default bundleAnalyzer(
       remotePatterns: [
         {
           protocol: 'http',
-          hostname: 'localhost',
-          pathname: '/**',
+          hostname: '**',
+        },
+        {
+          protocol: 'https',
+          hostname: '**',
         },
       ],
     },

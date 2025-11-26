@@ -4,16 +4,10 @@
 cp .env.example .env
 ```
 
-# 2. Build the image
+# 2. Run Docker
 
 ```
-docker build -t pgeem-frontend .
-```
-
-# 3. Run the container
-
-```
-docker run -p 3000:3000 --name pgeem-app pgeem-frontend
+docker compose up -d --build --force-recreate --remove-orphans
 ```
 
 ---
