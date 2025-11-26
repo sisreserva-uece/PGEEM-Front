@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const Env = createEnv({
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().optional(),
+    NEXT_PUBLIC_APP_URL: z.string(),
     NEXT_PUBLIC_API_BASE_URL: z.string().url(),
   },
   shared: {
