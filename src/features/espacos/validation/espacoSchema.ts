@@ -7,8 +7,9 @@ export const espacoFormSchema = z.object({
   departamentoId: z.string().uuid({ message: 'Departamento é obrigatório.' }),
   localizacaoId: z.string().uuid({ message: 'Localização é obrigatória.' }),
   tipoEspacoId: z.string().uuid({ message: 'Tipo de Espaço é obrigatório.' }),
-  tipoAtividadeId: z.string().uuid({ message: 'Tipo de Atividade é obrigatório.' }),
+  tipoAtividadeIds: z.array(z.string().uuid()).min(1, { message: 'Selecione pelo menos um tipo de atividade.' }),
   precisaProjeto: z.boolean(),
+  multiusuario: z.boolean(),
 });
 
 export const espacoUpdateSchema = espacoFormSchema.pick({
@@ -16,6 +17,8 @@ export const espacoUpdateSchema = espacoFormSchema.pick({
   urlCnpq: true,
   observacao: true,
   precisaProjeto: true,
+  multiusuario: true,
+  tipoAtividadeIds: true,
 });
 
 export const tipoEspacoFormSchema = z.object({

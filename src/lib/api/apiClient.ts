@@ -1,6 +1,7 @@
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { logoutAction } from '@/features/auth/actions/authActions';
 import { authService } from '@/features/auth/services/authService';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { Env } from '../env';
@@ -81,7 +82,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError as AxiosError, null);
-        useAuthStore.getState().clearAuth();
+        await logoutAction();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -96,7 +97,9 @@ apiClient.interceptors.response.use(
         const message = typeof errorData.error === 'string'
           ? errorData.error
           : errorData?.error?.message || 'Erro inesperado.';
-        toast.error(message);
+        if (status !== 401) {
+          toast.error(message);
+        }
       }
     }
     return Promise.reject(error);

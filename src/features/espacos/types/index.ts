@@ -12,7 +12,7 @@ export type Espaco = {
   departamento: ApiSelectOption;
   localizacao: ApiSelectOption;
   tipoEspaco: ApiSelectOption;
-  tipoAtividade: ApiSelectOption;
+  tiposAtividade: ApiSelectOption[];
 };
 
 export type TipoEspaco = {

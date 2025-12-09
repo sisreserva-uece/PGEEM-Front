@@ -3,6 +3,7 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Espaco } from '../types';
 import { Eye, Pencil } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
@@ -28,6 +29,29 @@ export const getColumns = ({ onView, onEdit, canEdit }: GetColumnsProps): Column
   {
     accessorKey: 'tipoEspaco.nome',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo de Espaço" />,
+  },
+  // Updated Column for Array
+  {
+    accessorKey: 'tiposAtividade',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Atividades" />,
+    cell: ({ row }) => {
+      const atividades = row.original.tiposAtividade || [];
+      // Show first 2, then +X more
+      const visible = atividades.slice(0, 2);
+      const remainder = atividades.length - 2;
+
+      return (
+        <div className="flex flex-wrap gap-1">
+          {visible.map(t => <Badge key={t.id} variant="outline" className="text-[10px] px-1 py-0">{t.nome}</Badge>)}
+          {remainder > 0 && (
+            <span className="text-xs text-muted-foreground">
+              +
+              {remainder}
+            </span>
+          )}
+        </div>
+      );
+    },
   },
   {
     id: 'actions',

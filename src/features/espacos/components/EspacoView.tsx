@@ -28,10 +28,21 @@ export function EspacoMainDataView({ entity: espaco }: { entity: Espaco }) {
       <InfoItem label="Departamento">{espaco.departamento.nome}</InfoItem>
       <InfoItem label="Localização">{espaco.localizacao.nome}</InfoItem>
       <InfoItem label="Tipo de Espaço">{espaco.tipoEspaco.nome}</InfoItem>
-      <InfoItem label="Tipo de Atividade">{espaco.tipoAtividade.nome}</InfoItem>
-      <InfoItem label="Precisa de Projeto?">{espaco.precisaProjeto ? 'Sim' : 'Não'}</InfoItem>
-      <InfoItem label="URL do CNPq" className="md:col-span-2">{espaco.urlCnpq}</InfoItem>
-      <InfoItem label="Observação" className="md:col-span-2">{espaco.observacao}</InfoItem>
+      <InfoItem label="Tipos de Atividade">
+        <div className="flex flex-wrap gap-1">
+          {espaco.tiposAtividade.map(t => (
+            <Badge key={t.id} variant="secondary" className="text-xs">
+              {t.nome}
+            </Badge>
+          ))}
+        </div>
+      </InfoItem>
+      <div className="flex flex-col gap-4 md:col-span-2 md:flex-row">
+        <InfoItem label="Precisa de Projeto?">{espaco.precisaProjeto ? 'Sim' : 'Não'}</InfoItem>
+        <InfoItem label="Multiusuário?">{espaco.multiusuario ? 'Sim' : 'Não'}</InfoItem>
+      </div>
+      <InfoItem label="URL do CNPq" className="md:col-span-2">{espaco.urlCnpq || '-'}</InfoItem>
+      <InfoItem label="Observação" className="md:col-span-2">{espaco.observacao || '-'}</InfoItem>
     </div>
   );
 }

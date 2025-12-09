@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, ChevronsUpDown, Info } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -31,8 +32,9 @@ const initialValues: EspacoFormData = {
   departamentoId: '',
   localizacaoId: '',
   tipoEspacoId: '',
-  tipoAtividadeId: '',
+  tipoAtividadeIds: [],
   precisaProjeto: false,
+  multiusuario: false,
 };
 
 export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFormProps) {
@@ -47,8 +49,9 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
           departamentoId: espaco.departamento.id,
           localizacaoId: espaco.localizacao.id,
           tipoEspacoId: espaco.tipoEspaco.id,
-          tipoAtividadeId: espaco.tipoAtividade.id,
+          tipoAtividadeIds: espaco.tiposAtividade.map(t => t.id),
           precisaProjeto: espaco.precisaProjeto,
+          multiusuario: espaco.multiusuario,
         }
       : initialValues,
   });
@@ -68,6 +71,8 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
           urlCnpq: values.urlCnpq,
           observacao: values.observacao,
           precisaProjeto: values.precisaProjeto,
+          multiusuario: values.multiusuario,
+          tipoAtividadeIds: values.tipoAtividadeIds,
         })
       : createMutation.mutateAsync(values);
     toast.promise(promise, {
@@ -236,22 +241,37 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
-            name="tipoAtividadeId"
+            name="tipoAtividadeIds"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Tipo de Atividade Principal</FormLabel>
+                <FormLabel>Tipos de Atividade</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
                         role="combobox"
-                        className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
-                        disabled={isEditMode}
+                        className={cn('w-full justify-between h-auto min-h-[40px]', !field.value?.length && 'text-muted-foreground')}
                       >
-                        {field.value ? tiposAtividade.find(tipo => tipo.id === field.value)?.nome : 'Selecione um tipo de atividade'}
+                        <div className="flex flex-wrap gap-1 items-center">
+                          {field.value && field.value.length > 0
+                            ? (
+                                field.value.map((id) => {
+                                  const item = tiposAtividade.find(t => t.id === id);
+                                  return (
+                                    <Badge key={id} variant="secondary" className="mr-1">
+                                      {item?.nome || '...'}
+                                    </Badge>
+                                  );
+                                })
+                              )
+                            : (
+                                'Selecione as atividades'
+                              )}
+                        </div>
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
@@ -264,11 +284,24 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
                         <CommandGroup>
                           {tiposAtividade.map(tipo => (
                             <CommandItem
-                              value={tipo.nome}
                               key={tipo.id}
-                              onSelect={() => field.onChange(tipo.id)}
+                              value={tipo.nome}
+                              onSelect={() => {
+                                const current = field.value || [];
+                                const isSelected = current.includes(tipo.id);
+                                if (isSelected) {
+                                  field.onChange(current.filter(id => id !== tipo.id));
+                                } else {
+                                  field.onChange([...current, tipo.id]);
+                                }
+                              }}
                             >
-                              <Check className={cn('mr-2 h-4 w-4', tipo.id === field.value ? 'opacity-100' : 'opacity-0')} />
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  field.value?.includes(tipo.id) ? 'opacity-100' : 'opacity-0',
+                                )}
+                              />
                               {tipo.nome}
                             </CommandItem>
                           ))}
@@ -281,6 +314,7 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
               </FormItem>
             )}
           />
+
           {isEditMode && (
             <div className="sm:col-span-2 flex items-start gap-2.5 text-red-700 border border-red-200 bg-red-50 p-3 rounded-md">
               <Info className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
@@ -319,7 +353,8 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
               )}
             />
           </div>
-          <div className="sm:col-span-2">
+
+          <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="precisaProjeto"
@@ -328,7 +363,25 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Precisa de Projeto?</FormLabel>
                     <FormDescription>
-                      Marque se o uso deste espaço requer a submissão de um projeto.
+                      Requer submissão de projeto para reserva.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="multiusuario"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Espaço Multiusuário?</FormLabel>
+                    <FormDescription>
+                      Pode ser usado por diferentes grupos.
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -338,6 +391,7 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
               )}
             />
           </div>
+
         </div>
         <div className="flex justify-end">
           <Button type="submit" disabled={isSubmitting}>
