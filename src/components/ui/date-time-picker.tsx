@@ -29,7 +29,6 @@ export function DateTimePicker({
       onChange(undefined);
       return;
     }
-    // If a date is selected, preserve the existing time part from the original value
     const updatedDate = new Date(newDate);
     if (value) {
       updatedDate.setHours(value.getHours());
@@ -42,12 +41,10 @@ export function DateTimePicker({
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const timeValue = e.target.value;
     const [hours, minutes] = timeValue.split(':').map(Number);
-
-    // Start with the current date value, or now if it's not set
     const updatedDate = value ? new Date(value) : new Date();
     updatedDate.setHours(hours);
     updatedDate.setMinutes(minutes);
-    updatedDate.setSeconds(0); // Reset seconds for consistency
+    updatedDate.setSeconds(0);
     onChange(updatedDate);
   };
 

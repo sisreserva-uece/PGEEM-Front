@@ -5,14 +5,11 @@ export const ROLES = [
   'USUARIO_INTERNO',
   'USUARIO_EXTERNO',
 ] as const;
-
 export type UserRole = (typeof ROLES)[number];
-
 export const signInSchema = z.object({
   email: z.string().email('Email inválido'),
   senha: z.string().min(1, 'Senha é obrigatória'),
 });
-
 export const signUpSchema = z
   .object({
     nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -34,7 +31,6 @@ export const signUpSchema = z
     message: 'As senhas não coincidem',
     path: ['confirmSenha'],
   });
-
 export type SignInFormValues = z.infer<typeof signInSchema>;
 export type SignUpFormValues = z.infer<typeof signUpSchema>;
 export type SignInRequest = SignInFormValues;
@@ -44,7 +40,6 @@ export type SignUpRequest = Omit<SignUpFormValues, 'confirmSenha' | 'cargosNome'
   refreshTokenEnabled: boolean;
   cargosNome: string[];
 };
-
 export type AuthState = {
   user: UserProfile | null;
   accessToken: string | null;
@@ -54,36 +49,30 @@ export type AuthState = {
   setAccessToken: (accessToken: string) => void;
   clearAuth: () => void;
 };
-
 export type SignInResponse = {
   data: {
     token: string;
   } | null;
   error: null | errorResponse;
 };
-
 export type MeResponse = {
   data: UserProfile | null;
   error: null | errorResponse;
 };
-
 export type errorResponse = {
   name: string;
   message: string;
 };
-
 export type cargo = {
   descricao: string;
   id: string;
   nome: UserRole;
 };
-
 export type instituicao = {
   descricao: string;
   id: string;
   nome: string;
 };
-
 export type UserProfile = {
   cargos: cargo[];
   documentoFiscal: string;

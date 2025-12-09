@@ -8,6 +8,7 @@ export type Espaco = {
   urlCnpq: string | null;
   observacao: string | null;
   precisaProjeto: boolean;
+  multiusuario: boolean;
   departamento: ApiSelectOption;
   localizacao: ApiSelectOption;
   tipoEspaco: ApiSelectOption;
