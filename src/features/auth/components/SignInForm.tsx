@@ -4,20 +4,22 @@ import type { SignInFormValues } from '../types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { FormHeader } from '@/components/ui/typography';
+import { loginAction } from '@/features/auth/actions/authActions';
 import { useRouter } from '@/lib/i18nNavigation';
-import { useSignIn } from '../hooks/useSignIn';
 import { signInSchema } from '../types';
 
 export function SignInForm() {
   const t = useTranslations('loginPage');
   const router = useRouter();
-  const { signIn, isPending } = useSignIn();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -28,7 +30,14 @@ export function SignInForm() {
   });
 
   const onSubmit = (data: SignInFormValues) => {
-    signIn(data);
+    setError(null);
+    startTransition(async () => {
+      const result = await loginAction(data);
+      if (result?.error) {
+        setError(result.error);
+        toast.error(result.error);
+      }
+    });
   };
 
   const handleForgotPassword = () => {
@@ -105,6 +114,11 @@ export function SignInForm() {
                 </button>
               </div>
               <div className="flex gap-3 pt-2">
+                {error && (
+                  <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md">
+                    {error}
+                  </div>
+                )}
                 <Button
                   type="submit"
                   variant="default"

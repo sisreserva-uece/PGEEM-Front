@@ -7,10 +7,13 @@ import { CenteredPageLayout } from '@/components/CenteredPageLayout';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { SessionProvider } from '@/features/auth/components/SessionProvider';
+import { authService } from '@/features/auth/services/authService';
 import { ProtectedNavigation } from '@/features/nav-bar/components/ProtectedNavigation';
 import { inter } from '@/lib/font';
 import { routing } from '@/lib/i18nNavigation';
 import { AppProviders } from '@/lib/providers/AppProviders';
+// 👇 NEW IMPORTS
+import { getSession } from '@/lib/session';
 import '@fontsource/inter';
 import '@/styles/global.css';
 
@@ -28,11 +31,24 @@ export default async function RootLayout(props: {
   }
   setRequestLocale(locale);
   const messages = await getMessages();
+  const token = await getSession();
+  let user = null;
+  if (token) {
+    try {
+      const response = await authService.getMe({
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      user = response.data.data;
+    } catch (error) {
+      console.error('Server-side user fetch failed:', error);
+    }
+  }
+
   return (
     <html lang={locale} className={`${inter.className}`}>
       <body suppressHydrationWarning className="antialiased">
         <AppProviders>
-          <SessionProvider>
+          <SessionProvider user={user} accessToken={token}>
             <NextIntlClientProvider locale={locale} messages={messages}>
               <div className="flex min-h-screen flex-col overflow-x-hidden">
                 <Header />

@@ -1,14 +1,16 @@
 'use client';
-
+import { useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { useLogout } from '@/features/auth/hooks/useLogout';
+import { logoutAction } from '@/features/auth/actions/authActions';
 import { useAuthStore } from '@/features/auth/store/authStore';
 
 export function AuthStatus() {
   const { status, user } = useAuthStore();
-  const { logout, isPending } = useLogout();
+  const [isPending, startTransition] = useTransition();
   const handleLogout = () => {
-    logout();
+    startTransition(async () => {
+      await logoutAction();
+    });
   };
   if (status === 'unauthenticated' || !user) {
     return null;
@@ -26,7 +28,7 @@ export function AuthStatus() {
         size="sm"
         disabled={isPending}
       >
-        Sair
+        {isPending ? 'Saindo...' : 'Sair'}
       </Button>
     </div>
   );

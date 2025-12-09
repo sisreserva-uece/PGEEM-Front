@@ -1,22 +1,16 @@
-'use client';
+import { redirect } from '@/lib/i18nNavigation';
+import { getSession } from '@/lib/session';
 
-import React, { useEffect } from 'react';
-import { Loading } from '@/components/Loading';
-import { useAuthStore } from '@/features/auth/store/authStore';
-import { useRouter } from '@/lib/i18nNavigation';
+type Props = {
+  params: Promise<{ locale: string }>;
+};
 
-export default function RootPage() {
-  const { status } = useAuthStore();
-  const router = useRouter();
-  useEffect(() => {
-    if (status === 'loading') {
-      return;
-    }
-    if (status === 'authenticated') {
-      router.replace('/dashboard');
-    } else {
-      router.replace('/signin');
-    }
-  }, [status, router]);
-  return <Loading />;
+export default async function RootPage({ params }: Props) {
+  const { locale } = await params;
+  const token = await getSession();
+  if (token) {
+    redirect({ href: '/dashboard', locale });
+  } else {
+    redirect({ href: '/signin', locale });
+  }
 }

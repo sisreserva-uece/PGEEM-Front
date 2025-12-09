@@ -29,20 +29,18 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  },
+  error => Promise.reject(error),
 );
 
 let isRefreshing = false;
-let failedQueue: Array<{ resolve: (value?: any) => void; reject: (reason?: any) => void }> = [];
+let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: any) => void }> = [];
 
 const processQueue = (error: AxiosError | null, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token);
+      prom.resolve(token!);
     }
   });
   failedQueue = [];
@@ -54,24 +52,28 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
     const status = error.response?.status;
     if (status === 401 && !originalRequest._retry) {
-      const currentUser = useAuthStore.getState().user;
-      if (!currentUser || !currentUser.refreshTokenEnabled) {
-        useAuthStore.getState().clearAuth();
-        return Promise.reject(error);
-      }
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then((token) => {
-          originalRequest.headers!.Authorization = `Bearer ${token}`;
-          return apiClient(originalRequest);
+        return new Promise<void>((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token: string) => {
+              originalRequest.headers!.Authorization = `Bearer ${token}`;
+              resolve(apiClient(originalRequest));
+            },
+            reject,
+          });
         });
       }
       originalRequest._retry = true;
       isRefreshing = true;
       try {
-        const { data: refreshData } = await authService.refreshToken({ _showToastOnError: false });
-        const newAccessToken = refreshData.data?.token as string;
+        const { data: refreshData } = await authService.refreshToken({
+          _showToastOnError: false,
+          _retry: true,
+        });
+        const newAccessToken = refreshData.data?.token;
+        if (!newAccessToken) {
+          throw new Error('Token refresh failed');
+        }
         useAuthStore.getState().setAccessToken(newAccessToken);
         apiClient.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
         originalRequest.headers!.Authorization = `Bearer ${newAccessToken}`;
@@ -86,15 +88,16 @@ apiClient.interceptors.response.use(
       }
     }
     if (status === 403) {
-      useAuthStore.getState().clearAuth();
-    }
-    const shouldShowToast = originalRequest._showToastOnError !== false;
-    if (error.response && shouldShowToast) {
-      const errorData = error.response.data as { error?: { message?: string } };
-      const errorMessage
-        = errorData?.error?.message
-          || 'Um erro inesperado ocorreu, por favor tente novamente ou contate o suporte.';
-      toast.error(errorMessage);
+      toast.error('Você não tem permissão para realizar esta ação.');
+    } else {
+      const shouldShowToast = originalRequest._showToastOnError !== false;
+      if (error.response && shouldShowToast) {
+        const errorData = error.response.data as { error?: string | { message?: string } };
+        const message = typeof errorData.error === 'string'
+          ? errorData.error
+          : errorData?.error?.message || 'Erro inesperado.';
+        toast.error(message);
+      }
     }
     return Promise.reject(error);
   },
