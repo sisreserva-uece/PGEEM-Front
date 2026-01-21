@@ -130,8 +130,15 @@ export function SignUpForm() {
                   name="telefone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefone *</FormLabel>
-                      <FormControl><Input type="tel" placeholder="Digite seu telefone" disabled={isPending} {...field} /></FormControl>
+                      <FormLabel>Celular (com DDD) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="tel"
+                          placeholder="(85) 99999-9999"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -141,8 +148,8 @@ export function SignUpForm() {
                   name="documentoFiscal"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Documento Fiscal *</FormLabel>
-                      <FormControl><Input placeholder="Digite seu Documento Fiscal" disabled={isPending} {...field} /></FormControl>
+                      <FormLabel>CPF *</FormLabel>
+                      <FormControl><Input placeholder="Digite seu CPF (apenas números)" disabled={isPending} {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

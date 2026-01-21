@@ -1,3 +1,5 @@
+import { cpf } from 'cpf-cnpj-validator';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 import { z } from 'zod';
 
 export const ROLES = [
@@ -6,10 +8,12 @@ export const ROLES = [
   'USUARIO_EXTERNO',
 ] as const;
 export type UserRole = (typeof ROLES)[number];
+
 export const signInSchema = z.object({
   email: z.string().email('Email inválido'),
   senha: z.string().min(1, 'Senha é obrigatória'),
 });
+
 export const signUpSchema = z
   .object({
     nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
@@ -20,9 +24,18 @@ export const signUpSchema = z
       .regex(/[A-Z]/, 'A senha deve conter pelo menos uma letra maiúscula')
       .regex(/\d/, 'A senha deve conter pelo menos um número'),
     confirmSenha: z.string(),
-    documentoFiscal: z.string().min(1, 'Documento fiscal é obrigatório'),
+    documentoFiscal: z
+      .string()
+      .min(1, 'CPF é obrigatório')
+      .refine(value => cpf.isValid(value), {
+        message: 'CPF inválido',
+      }),
     matricula: z.string().min(1, 'Matrícula é obrigatória'),
-    telefone: z.string().min(10, 'Telefone inválido'),
+    telefone: z
+      .string()
+      .refine(val => isValidPhoneNumber(val, 'BR'), {
+        message: 'Telefone inválido (Informe o DDD + Número)',
+      }),
     fotoPerfil: z.string().url('URL inválida').optional().or(z.literal('')),
     cargosNome: z.enum(ROLES),
     instituicaoId: z.string({ required_error: 'Por favor, selecione uma instituição.' }),
@@ -31,6 +44,7 @@ export const signUpSchema = z
     message: 'As senhas não coincidem',
     path: ['confirmSenha'],
   });
+
 export type SignInFormValues = z.infer<typeof signInSchema>;
 export type SignUpFormValues = z.infer<typeof signUpSchema>;
 export type SignInRequest = SignInFormValues;
@@ -40,6 +54,7 @@ export type SignUpRequest = Omit<SignUpFormValues, 'confirmSenha' | 'cargosNome'
   refreshTokenEnabled: boolean;
   cargosNome: string[];
 };
+
 export type AuthState = {
   user: UserProfile | null;
   accessToken: string | null;
@@ -48,30 +63,36 @@ export type AuthState = {
   setAccessToken: (accessToken: string) => void;
   clearAuth: () => void;
 };
+
 export type SignInResponse = {
   data: {
     token: string;
   } | null;
   error: null | errorResponse;
 };
+
 export type MeResponse = {
   data: UserProfile | null;
   error: null | errorResponse;
 };
+
 export type errorResponse = {
   name: string;
   message: string;
 };
+
 export type cargo = {
   descricao: string;
   id: string;
   nome: UserRole;
 };
+
 export type instituicao = {
   descricao: string;
   id: string;
   nome: string;
 };
+
 export type UserProfile = {
   cargos: cargo[];
   documentoFiscal: string;
