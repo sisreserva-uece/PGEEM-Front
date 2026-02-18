@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetUserById } from '@/features/usuarios/services/usuarioService';
+import { parseUtcToLocal } from '@/lib/dateUtils';
 import { useUpdateSolicitacaoStatus } from '../services/reservaService';
 import { ReservaStatus } from '../types';
 
 const formatDateTime = (dateString: string) =>
-  new Date(dateString).toLocaleString('pt-BR', {
+  parseUtcToLocal(dateString).toLocaleString('pt-BR', {
     dateStyle: 'short',
     timeStyle: 'short',
   });

@@ -12,6 +12,7 @@ import { ReservaForm, ReservaMainDataView } from '@/features/reservas/components
 import { SolicitarReservaDialog } from '@/features/reservas/components/SolicitarReservaDialog';
 import { useGetAgendaReservasByEspaco } from '@/features/reservas/services/reservaService';
 import { ReservaStatus } from '@/features/reservas/types';
+import { parseUtcToLocal } from '@/lib/dateUtils';
 
 const getEventStyle = (reserva: Reserva, currentUserId?: string) => {
   const isOwner = reserva.usuarioSolicitanteId === currentUserId;
@@ -49,8 +50,8 @@ export function EspacoAgendaTab({ espaco }: { espaco: Espaco }) {
       const { backgroundColor, borderColor, title } = getEventStyle(reserva, user?.id);
       return {
         id: reserva.id,
-        start: reserva.dataInicio,
-        end: reserva.dataFim,
+        start: parseUtcToLocal(reserva.dataInicio),
+        end: parseUtcToLocal(reserva.dataFim),
         title,
         backgroundColor,
         borderColor,

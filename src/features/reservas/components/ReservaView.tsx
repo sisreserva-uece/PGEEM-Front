@@ -7,6 +7,7 @@ import { InfoItem } from '@/features/equipamentos/components/EquipamentoView';
 import { useGetEspacoById } from '@/features/espacos/services/espacoService';
 import { useGetProjetoById } from '@/features/projetos/services/projetoService';
 import { useGetUserById } from '@/features/usuarios/services/usuarioService';
+import { parseUtcToLocal } from '@/lib/dateUtils';
 import { ReservaStatusMap } from '../types';
 
 export function ReservaMainDataView({ entity: reserva }: { entity: Reserva }) {
@@ -15,7 +16,7 @@ export function ReservaMainDataView({ entity: reserva }: { entity: Reserva }) {
   const { data: projeto, isLoading: isLoadingProjeto } = useGetProjetoById(reserva.projetoId);
 
   const formatDateTime = (dateString: string) =>
-    new Date(dateString).toLocaleString('pt-BR', {
+    parseUtcToLocal(dateString).toLocaleString('pt-BR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
