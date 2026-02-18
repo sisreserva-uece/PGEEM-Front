@@ -1,40 +1,120 @@
 'use client';
 
+import type { DateSelectArg, EventClickArg, EventInput } from '@fullcalendar/core';
 import type { ReservableResource } from '../types';
-import { useState } from 'react';
+import type { Reserva } from '@/features/reservas/types';
+import { Loader2 } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { MasterDetailSheet } from '@/components/ui/master-detail-sheet';
 import { Scheduler } from '@/components/ui/scheduler';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { ReservaForm, ReservaMainDataView } from '@/features/reservas/components/ReservaView';
 import { SolicitarReservaDialog } from '@/features/reservas/components/SolicitarReservaDialog';
 import { useGetAgendaReservas } from '@/features/reservas/services/reservaService';
-import { ReservaStatusMap } from '../types';
+import { ReservaStatus } from '@/features/reservas/types';
+import { parseUtcToLocal } from '@/lib/dateUtils';
+
+const getEventStyle = (reserva: Reserva, currentUserId?: string) => {
+  const isOwner = reserva.usuarioSolicitanteId === currentUserId;
+  if (reserva.status === ReservaStatus.APROVADO) {
+    return {
+      backgroundColor: isOwner ? '#16a34a' : '#2563eb',
+      borderColor: isOwner ? '#16a34a' : '#2563eb',
+      title: `Reservado${isOwner ? ' (Você)' : ''}`,
+    };
+  }
+  if (reserva.status === ReservaStatus.PENDENTE) {
+    return {
+      backgroundColor: isOwner ? '#ca8a04' : '#a1a1aa',
+      borderColor: isOwner ? '#ca8a04' : '#a1a1aa',
+      title: `Pendente${isOwner ? ' (Você)' : ''}`,
+    };
+  }
+  return {};
+};
 
 type Props = {
   resource: ReservableResource;
 };
 
 export default function ReservableAgenda({ resource }: Props) {
-  const { data: reservas = [] } = useGetAgendaReservas(resource);
-  const [openDialog, setOpenDialog] = useState(false);
+  const { user } = useAuthStore();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogDates, setDialogDates] = useState<{ start: Date; end: Date } | undefined>(undefined);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedReserva, setSelectedReserva] = useState<Reserva | null>(null);
 
-  const events = reservas.map(reserva => ({
-    id: reserva.id,
-    title: ReservaStatusMap[reserva.status].label,
-    start: new Date(reserva.dataInicio),
-    end: new Date(reserva.dataFim),
-    className: ReservaStatusMap[reserva.status].className,
-  }));
+  const { data: reservas, isLoading: isLoadingReservas } = useGetAgendaReservas(resource);
+
+  const calendarEvents = useMemo((): EventInput[] => {
+    if (!reservas) {
+      return [];
+    }
+
+    return reservas.map((reserva: Reserva) => {
+      const { backgroundColor, borderColor, title } = getEventStyle(reserva, user?.id);
+      return {
+        id: reserva.id,
+        start: parseUtcToLocal(reserva.dataInicio),
+        end: parseUtcToLocal(reserva.dataFim),
+        title,
+        backgroundColor,
+        borderColor,
+        extendedProps: { reserva },
+      };
+    });
+  }, [reservas, user?.id]);
+
+  const handleDateSelect = useCallback((selectInfo: DateSelectArg) => {
+    setDialogDates({ start: selectInfo.start, end: selectInfo.end });
+    setDialogOpen(true);
+    selectInfo.view.calendar.unselect();
+  }, []);
+
+  const handleEventClick = useCallback((clickInfo: EventClickArg) => {
+    const reserva = clickInfo.event.extendedProps.reserva as Reserva;
+    setSelectedReserva(reserva);
+    setSheetOpen(true);
+  }, []);
+
+  if (isLoadingReservas) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <>
-      <Scheduler
-        events={events}
-        onEventClick={() => setOpenDialog(true)}
-      />
+      <div className="relative">
+        <Scheduler
+          events={calendarEvents}
+          onDateSelect={handleDateSelect}
+          onEventClick={handleEventClick}
+        />
+      </div>
 
       <SolicitarReservaDialog
         resource={resource}
-        open={openDialog}
-        onOpenChange={setOpenDialog}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initialDates={dialogDates}
       />
+
+      {sheetOpen && selectedReserva && (
+        <MasterDetailSheet
+          key={selectedReserva.id}
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          entity={selectedReserva}
+          entityName="Detalhes da Reserva"
+          initialMode="view"
+          canEdit={false}
+          FormComponent={ReservaForm}
+          MainDataViewComponent={ReservaMainDataView}
+        />
+      )}
     </>
   );
 }

@@ -1,14 +1,15 @@
 'use client';
 
 import type { Equipamento } from '../types';
-import { MapPin } from 'lucide-react';
-import Link from 'next/link';
-import React from 'react';
+import { CalendarDays, MapPin } from 'lucide-react';
+import React, { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { RelatedItemLink } from '@/components/ui/related-item-link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetEspacoForEquipamento } from '@/features/equipamentos/services/equipamentoService';
+import { equipamentoToResource } from '@/features/equipamentos/utils/equipamentoToResource';
+import ReservableAgenda from '@/features/reservas/components/ReservableAgenda';
 import { EquipamentoStatus } from '../types';
 
 export function InfoItem({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
@@ -40,40 +41,29 @@ export function EquipamentoMainDataView({ entity: equipamento }: { entity: Equip
   );
 }
 
-function LinkedSpaceInfo({ equipamentoId }: { equipamentoId: string }) {
-  const { data: espaco, isLoading, isError } = useGetEspacoForEquipamento(equipamentoId);
-  if (isLoading) {
-    return <Skeleton className="h-5 w-48" />;
-  }
-  if (isError) {
-    return <p className="text-sm text-destructive">Erro ao carregar alocação.</p>;
-  }
-  return espaco
-    ? (
-        <Link
-          href={`/dashboard/espacos?open=${espaco.id}`}
-          className="text-primary underline-offset-4 hover:underline"
-        >
-          {espaco.nome}
-        </Link>
-      )
-    : (
-        <span className="text-muted-foreground italic">Nenhum (Disponível)</span>
-      );
-}
-
 export function EquipamentoRelationsView({ entity: equipamento }: { entity: Equipamento }) {
   const { data: espaco, isLoading } = useGetEspacoForEquipamento(equipamento.id);
+  const resource = useMemo(() => equipamentoToResource(equipamento), [equipamento]);
+
   return (
-    <Tabs defaultValue="alocacao" className="w-full">
-      <TabsList className="grid w-full grid-cols-1">
-        {' '}
+    <Tabs defaultValue="agenda" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="agenda">
+          <CalendarDays className="mr-2 h-4 w-4" />
+          Agenda
+        </TabsTrigger>
         <TabsTrigger value="alocacao">
+          <MapPin className="mr-2 h-4 w-4" />
           Alocação (
           {isLoading ? '...' : (espaco ? '1' : '0')}
           )
         </TabsTrigger>
       </TabsList>
+
+      <TabsContent value="agenda" className="mt-4">
+        <ReservableAgenda resource={resource} />
+      </TabsContent>
+
       <TabsContent value="alocacao" className="mt-4">
         <div className="space-y-2 rounded-lg border p-2 min-h-[100px]">
           {isLoading
