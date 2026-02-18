@@ -1,8 +1,10 @@
 import type { Reserva } from '../types';
 import type { ReservaCreatePayload } from '../validation/reservaSchema';
+import type { ReservableResource } from '@/features/reservas/types/reservableResource';
 import type { PaginatedResponse } from '@/types/api';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { buildResourceFilter } from '@/features/reservas/utils/buildResourceFilter';
 import apiClient from '@/lib/api/apiClient';
 import { fetchAllPaginated } from '@/lib/api/fetchAllPaginated';
 import { createCrudHooks } from '@/lib/hooks/useCrud';
@@ -44,24 +46,40 @@ export function useGetSolicitacoesByEspaco(params: Record<string, any>) {
   });
 }
 
-export function useGetAgendaReservasByEspaco(espacoId: string | null) {
+export function useGetAgendaReservas(resource: ReservableResource | null) {
   return useQuery({
-    queryKey: ['reservas', 'agenda', espacoId],
-    queryFn: () => {
-      if (!espacoId) {
+    queryKey: ['reservas', 'agenda', resource?.type, resource?.id],
+    queryFn: async () => {
+      if (!resource) {
         return [];
       }
+
+      const filter = buildResourceFilter(resource);
+
       const approved = fetchAllPaginated<Reserva>('solicitacao-reserva', {
-        espacoId,
+        ...filter,
         statusCodigo: ReservaStatus.APROVADO,
       });
+
       const pending = fetchAllPaginated<Reserva>('solicitacao-reserva', {
-        espacoId,
+        ...filter,
         statusCodigo: ReservaStatus.PENDENTE,
       });
-      return Promise.all([approved, pending]).then(([approvedRes, pendingRes]) => [...approvedRes, ...pendingRes]);
+
+      const adjustment = fetchAllPaginated<Reserva>('solicitacao-reserva', {
+        ...filter,
+        statusCodigo: ReservaStatus.PENDENTE_AJUSTE,
+      });
+
+      const [approvedRes, pendingRes, adjustmentRes] = await Promise.all([
+        approved,
+        pending,
+        adjustment,
+      ]);
+
+      return [...approvedRes, ...pendingRes, ...adjustmentRes];
     },
-    enabled: !!espacoId,
+    enabled: !!resource,
   });
 }
 

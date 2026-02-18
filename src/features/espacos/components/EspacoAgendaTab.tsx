@@ -8,9 +8,10 @@ import { useCallback, useMemo, useState } from 'react';
 import { MasterDetailSheet } from '@/components/ui/master-detail-sheet';
 import { Scheduler } from '@/components/ui/scheduler';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { espacoToResource } from '@/features/espacos/utils/espacoToResource';
 import { ReservaForm, ReservaMainDataView } from '@/features/reservas/components/ReservaView';
 import { SolicitarReservaDialog } from '@/features/reservas/components/SolicitarReservaDialog';
-import { useGetAgendaReservasByEspaco } from '@/features/reservas/services/reservaService';
+import { useGetAgendaReservas } from '@/features/reservas/services/reservaService';
 import { ReservaStatus } from '@/features/reservas/types';
 import { parseUtcToLocal } from '@/lib/dateUtils';
 
@@ -39,14 +40,14 @@ export function EspacoAgendaTab({ espaco }: { espaco: Espaco }) {
   const [dialogDates, setDialogDates] = useState<{ start: Date; end: Date } | undefined>(undefined);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedReserva, setSelectedReserva] = useState<Reserva | null>(null);
-
-  const { data: reservas, isLoading: isLoadingReservas } = useGetAgendaReservasByEspaco(espaco.id);
+  const resource = useMemo(() => espacoToResource(espaco), [espaco]);
+  const { data: reservas, isLoading: isLoadingReservas } = useGetAgendaReservas(resource);
 
   const calendarEvents = useMemo((): EventInput[] => {
     if (!reservas) {
       return [];
     }
-    return reservas.map((reserva) => {
+    return reservas.map((reserva: Reserva) => {
       const { backgroundColor, borderColor, title } = getEventStyle(reserva, user?.id);
       return {
         id: reserva.id,
@@ -92,8 +93,9 @@ export function EspacoAgendaTab({ espaco }: { espaco: Espaco }) {
         />
       </div>
 
+      {/* CHANGED: Pass resource instead of espaco */}
       <SolicitarReservaDialog
-        espaco={espaco}
+        resource={resource}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         initialDates={dialogDates}

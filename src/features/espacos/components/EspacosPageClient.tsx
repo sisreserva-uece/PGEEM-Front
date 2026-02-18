@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { EspacoForm } from '@/features/espacos/components/EspacoForm';
 import { EspacoMainDataView, EspacoRelationsView } from '@/features/espacos/components/EspacoView';
+import { espacoToResource } from '@/features/espacos/utils/espacoToResource';
 import { SolicitarReservaDialog } from '@/features/reservas/components/SolicitarReservaDialog';
 import { useUrlTrigger } from '@/lib/hooks/useUrlTrigger';
 import { useGetEspacos } from '../services/espacoService';
@@ -32,8 +33,8 @@ export function EspacosPageClient() {
   });
 
   const access = useUserAccess(selectedEspaco);
-  const router = useRouter(); // <-- Add router
-  const searchParams = useSearchParams(); // <-- Add searchParams
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const activeTab = searchParams.get('tab') === 'tipos' && access.canManageTiposEspaco ? 'tipos' : 'espacos';
 
   const handleFilterChange = (key: string, value: any) => {
@@ -185,7 +186,7 @@ export function EspacosPageClient() {
       )}
       {selectedEspaco && (
         <SolicitarReservaDialog
-          espaco={selectedEspaco}
+          resource={espacoToResource(selectedEspaco)}
           open={reservaDialogOpen}
           onOpenChange={setReservaDialogOpen}
         />

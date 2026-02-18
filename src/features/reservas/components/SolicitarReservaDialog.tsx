@@ -1,7 +1,7 @@
 'use client';
 
-import type { ReservaCreatePayload, ReservaFormValues } from '../validation/reservaSchema';
-import type { Espaco } from '@/features/espacos/types';
+import type { ReservaFormValues } from '../validation/reservaSchema';
+import type { ReservableResource } from '@/features/reservas/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -12,12 +12,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useGetProjetos } from '@/features/projetos/services/projetoService';
+import { buildReservaPayload } from '@/features/reservas/utils/buildReservaPayload';
 import { useCreateReserva } from '../services/reservaService';
-import { ReservaStatus } from '../types';
 import { reservaFormSchema } from '../validation/reservaSchema';
 
 type Props = {
-  espaco: Espaco;
+  resource: ReservableResource;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialDates?: { start: Date; end: Date };
@@ -33,7 +33,7 @@ const formatDateTime = (date?: Date) => {
   });
 };
 
-export function SolicitarReservaDialog({ espaco, open, onOpenChange, initialDates }: Props) {
+export function SolicitarReservaDialog({ resource, open, onOpenChange, initialDates }: Props) {
   const { user } = useAuthStore();
   const { data: projetosData, isLoading: isLoadingProjetos } = useGetProjetos({
     usuarioResponsavelId: user?.id,
@@ -48,7 +48,7 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange, initialDate
     },
   });
 
-  const isReadyForSubmission = !!initialDates && !!user && !!espaco;
+  const isReadyForSubmission = !!initialDates && !!user && !!resource;
 
   useEffect(() => {
     if (open && initialDates) {
@@ -60,28 +60,31 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange, initialDate
     }
   }, [open, initialDates, form]);
 
-  const onValidationErrors = (errors: any) => {
+  const onValidationErrors = () => {
     toast.error('Por favor, verifique os campos do formulário.');
   };
 
-  const onSubmit = (values: ReservaFormValues) => {
-    if (!isReadyForSubmission) {
-      toast.error('Não foi possível processar a solicitação. As datas da reserva não foram definidas.');
+  const onSubmit = async (values: ReservaFormValues) => {
+    if (!isReadyForSubmission || !user?.id) {
+      toast.error('Não foi possível processar a solicitação. Verifique os dados.');
       return;
     }
-    if (espaco.precisaProjeto && !values.projetoId) {
-      form.setError('projetoId', { message: 'Este espaço exige um projeto.' });
+
+    if (resource.requiresProject && !values.projetoId) {
+      form.setError('projetoId', { message: 'Este recurso exige um projeto.' });
       return;
     }
-    const payload: ReservaCreatePayload = {
-      ...values,
-      espacoId: espaco.id,
+
+    const basePayload = {
+      dataInicio: values.dataInicio.toISOString(),
+      dataFim: values.dataFim.toISOString(),
+      projetoId: values.projetoId,
       usuarioSolicitanteId: user.id,
-      status: ReservaStatus.PENDENTE,
-      dataInicio: initialDates.start.toISOString(),
-      dataFim: initialDates.end.toISOString(),
-      projetoId: values.projetoId || undefined,
+      status: 0 as const,
     };
+
+    const payload = buildReservaPayload(resource, basePayload);
+
     toast.promise(createMutation.mutateAsync(payload), {
       loading: 'Enviando solicitação...',
       success: () => {
@@ -89,9 +92,7 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange, initialDate
         form.reset();
         return 'Solicitação de reserva enviada com sucesso!';
       },
-      error: (err) => {
-        return 'Falha ao enviar solicitação.';
-      },
+      error: () => 'Falha ao enviar solicitação.',
     });
   };
 
@@ -103,7 +104,8 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange, initialDate
           <DialogDescription>
             Confirme os detalhes da sua solicitação para
             {' '}
-            <span className="font-semibold">{espaco.nome}</span>
+            <span className="font-semibold">{resource.displayName}</span>
+            .
             .
           </DialogDescription>
         </DialogHeader>
@@ -131,7 +133,7 @@ export function SolicitarReservaDialog({ espaco, open, onOpenChange, initialDate
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit, onValidationErrors)} className="space-y-4">
-            {espaco.precisaProjeto && (
+            {resource.requiresProject && (
               <FormField
                 control={form.control}
                 name="projetoId"

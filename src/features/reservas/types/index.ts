@@ -17,7 +17,17 @@ export type Reserva = {
   dataInicio: string; // ISO DateTime string
   dataFim: string; // ISO DateTime string
   status: ReservaStatus;
-  espacoId: string;
+  espacoId?: string;
+  equipamentoId?: string;
   usuarioSolicitanteId: string;
   projetoId: string | null;
+};
+
+export type ReservableResourceType = 'espaco' | 'equipamento';
+
+export type ReservableResource = {
+  id: string;
+  type: ReservableResourceType;
+  displayName: string;
+  requiresProject: boolean;
 };

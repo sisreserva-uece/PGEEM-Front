@@ -51,7 +51,6 @@ export function ReservaMainDataView({ entity: reserva }: { entity: Reserva }) {
   );
 }
 
-// A placeholder form component to satisfy the MasterDetailSheet props.
 export function ReservaForm() {
   return null;
 }

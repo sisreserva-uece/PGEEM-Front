@@ -14,9 +14,10 @@ export const reservaFormSchema = z.object({
 
 export type ReservaFormValues = z.infer<typeof reservaFormSchema>;
 export type ReservaCreatePayload = Omit<ReservaFormValues, 'dataInicio' | 'dataFim'> & {
-  dataInicio: string; // ISO DateTime string
-  dataFim: string; // ISO DateTime string
-  espacoId: string;
+  dataInicio: string;
+  dataFim: string;
   usuarioSolicitanteId: string;
   status: 0;
+  espacoId?: string;
+  equipamentoId?: string;
 };
