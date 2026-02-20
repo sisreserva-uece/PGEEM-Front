@@ -15,7 +15,9 @@ declare module 'axios' {
 }
 
 const apiClient = axios.create({
-  baseURL: Env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: typeof window === 'undefined' 
+    ? process.env.API_INTERNAL_URL 
+    : Env.NEXT_PUBLIC_API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
