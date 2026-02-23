@@ -12,10 +12,7 @@ export const authService = {
   getMe(config?: AxiosRequestConfig) {
     return apiClient.get<MeResponse>('/auth/usuario/me', config);
   },
-  refreshToken: (config?: AxiosRequestConfig) => {
-    return apiClient.post('/auth/refresh', undefined, config);
-  },
-  logout: () => {
+  logout() {
     return apiClient.post('/auth/logout');
   },
 };

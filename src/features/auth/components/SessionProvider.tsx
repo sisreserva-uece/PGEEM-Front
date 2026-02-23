@@ -7,22 +7,25 @@ import { useAuthStore } from '../store/authStore';
 type SessionProviderProps = {
   children: React.ReactNode;
   user: UserProfile | null;
-  accessToken: string | null;
 };
 
-export function SessionProvider({ children, user, accessToken }: SessionProviderProps) {
-  const setAuth = useAuthStore(state => state.setAuth);
+export function SessionProvider({ children, user }: SessionProviderProps) {
+  const { setAuth, clearAuth } = useAuthStore();
   const initialized = useRef(false);
   if (!initialized.current) {
-    if (user && accessToken) {
-      setAuth(user, accessToken);
+    if (user) {
+      setAuth(user);
+    } else {
+      clearAuth();
     }
     initialized.current = true;
   }
   useEffect(() => {
-    if (user && accessToken) {
-      setAuth(user, accessToken);
+    if (user) {
+      setAuth(user);
+    } else {
+      clearAuth();
     }
-  }, [user, accessToken, setAuth]);
+  }, [user, setAuth, clearAuth]);
   return <>{children}</>;
 }

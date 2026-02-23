@@ -3,14 +3,15 @@ import { authService } from '../services/authService';
 import { useAuthStore } from '../store/authStore';
 
 export const useMe = () => {
-  const accessToken = useAuthStore(state => state.accessToken);
+  const user = useAuthStore(state => state.user);
+
   return useQuery({
     queryKey: ['me'],
     queryFn: async () => {
       const response = await authService.getMe();
       return response.data.data!;
     },
-    enabled: !!accessToken,
+    enabled: !!user,
     retry: false,
   });
 };
