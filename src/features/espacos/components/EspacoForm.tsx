@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { ManageEquipamentosTab } from '@/features/espacos/components/ManageEquipamentosTab';
 import { ManageGestoresTab } from '@/features/espacos/components/ManageGestoresTab';
+import { ManageRelatoriosTab } from '@/features/espacos/components/ManageRelatoriosTab';
 import { EspacoDetailsForm } from './EspacoDetailsForm';
 
 type EspacoFormProps = {
@@ -18,10 +19,11 @@ export function EspacoForm({ entity: espaco, onSuccess }: EspacoFormProps) {
 
   return (
     <Tabs defaultValue="dados-principais" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="dados-principais">Dados Principais</TabsTrigger>
         <TabsTrigger value="gestores" disabled={!isEditMode || !access.canManageEspacoGestores}>Gestores</TabsTrigger>
         <TabsTrigger value="equipamentos" disabled={!isEditMode || !access.canManageEspacoEquipamentos}>Equipamentos</TabsTrigger>
+        <TabsTrigger value="espaco-relatorio" disabled={!isEditMode || !access.canManageRelatorioEquipamentos}>Relatório</TabsTrigger>
       </TabsList>
 
       <TabsContent value="dados-principais" className="mt-6">
@@ -34,6 +36,10 @@ export function EspacoForm({ entity: espaco, onSuccess }: EspacoFormProps) {
 
       <TabsContent value="equipamentos" className="mt-4">
         {isEditMode && espaco ? <ManageEquipamentosTab espacoId={espaco.id} /> : <p className="text-center text-muted-foreground p-4">Salve o espaço primeiro para poder adicionar equipamentos.</p>}
+      </TabsContent>
+
+      <TabsContent value="espaco-relatorio" className="mt-4">
+        {isEditMode && espaco ? <ManageRelatoriosTab espacoId={espaco.id} /> : <p className="text-center text-muted-foreground p-4">Salve o espaço primeiro para poder adicionar relatórios.</p>}
       </TabsContent>
     </Tabs>
   );

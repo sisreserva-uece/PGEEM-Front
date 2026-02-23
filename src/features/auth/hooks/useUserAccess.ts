@@ -24,6 +24,7 @@ export const useUserAccess = (espaco?: Espaco | null) => {
       isGestor: isGestorOfAnyEspaco,
       canCreateEspaco: hasGlobalRole(['ADMIN']),
       canEditEspacoDetails: hasGlobalRole(['ADMIN']) || isGestorOfCurrentEspaco,
+      canManageRelatorioEquipamentos: hasGlobalRole(['ADMIN']) || isGestorOfCurrentEspaco,
       canManageEspacoGestores: hasGlobalRole(['ADMIN']),
       canManageEspacoEquipamentos: hasGlobalRole(['ADMIN']) || isGestorOfCurrentEspaco,
       canCreateEquipamento: hasGlobalRole(['ADMIN']) || isGestorOfAnyEspaco,

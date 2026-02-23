@@ -1,0 +1,53 @@
+'use client';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { authService } from '@/features/auth/services/authService';
+import { useRouter } from '@/lib/i18nNavigation';
+import '@/styles/global.css';
+
+export default function UnauthorizedPage() {
+  const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); 
+
+  const handleLogout = async () => {
+    try {
+      setErrorMessage(null); 
+      setIsPending(true);
+      await authService.logout();
+      router.push('/signin');
+    } catch (error) {
+      console.error("Erro ao deslogar:", error);
+      setErrorMessage("Ocorreu um erro ao tentar sair. Por favor, tente novamente.");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <h1 className="text-[7rem] font-bold leading-tight">401</h1>
+      <span className="font-medium">Acesso Não Autorizado</span>
+      <p className="text-center text-muted-foreground">
+        Você não tem permissão para visualizar esta página.
+        <br />
+        Verifique suas credenciais ou entre em contato com o suporte.
+      </p>
+
+      {errorMessage && (
+        <p className="mt-4 text-sm font-medium text-red-500 bg-red-50 p-2 rounded border border-red-200">
+          {errorMessage}
+        </p>
+      )}
+
+      <div className="mt-6 flex gap-4">
+        <Button variant="outline" onClick={() => router.back()}>
+          Voltar
+        </Button>
+        <Button onClick={handleLogout} disabled={isPending}>
+          {isPending ? 'Saindo...' : 'Sair e ir para o Login'}
+        </Button>
+      </div>
+    </div>
+  );
+}
