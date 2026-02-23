@@ -1,27 +1,17 @@
 'use client';
-import { useState } from 'react';
+
+import { useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { authService } from '@/features/auth/services/authService';
-import { useRouter } from '@/lib/i18nNavigation';
+import { logoutAction } from '@/features/auth/actions/authActions';
 import '@/styles/global.css';
 
 export default function UnauthorizedPage() {
-  const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); 
+  const [isPending, startTransition] = useTransition();
 
-  const handleLogout = async () => {
-    try {
-      setErrorMessage(null); 
-      setIsPending(true);
-      await authService.logout();
-      router.push('/signin');
-    } catch (error) {
-      console.error("Erro ao deslogar:", error);
-      setErrorMessage("Ocorreu um erro ao tentar sair. Por favor, tente novamente.");
-    } finally {
-      setIsPending(false);
-    }
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logoutAction();
+    });
   };
 
   return (
@@ -34,16 +24,11 @@ export default function UnauthorizedPage() {
         Verifique suas credenciais ou entre em contato com o suporte.
       </p>
 
-      {errorMessage && (
-        <p className="mt-4 text-sm font-medium text-red-500 bg-red-50 p-2 rounded border border-red-200">
-          {errorMessage}
-        </p>
-      )}
-
       <div className="mt-6 flex gap-4">
-        <Button variant="outline" onClick={() => router.back()}>
+        <Button variant="outline" onClick={() => window.history.back()}>
           Voltar
         </Button>
+
         <Button onClick={handleLogout} disabled={isPending}>
           {isPending ? 'Saindo...' : 'Sair e ir para o Login'}
         </Button>
