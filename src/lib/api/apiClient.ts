@@ -1,7 +1,9 @@
-import type { AxiosError, AxiosResponse } from 'axios';
+import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Env } from '../env';
+import bffClient from './bffClient';
+import { extractErrorMessage } from './extractErrorMessage';
 
 declare module 'axios' {
   // eslint-disable-next-line ts/consistent-type-definitions
@@ -19,14 +21,53 @@ const apiClient = axios.create({
   },
 });
 
+let isRefreshing = false;
+let refreshSubscribers: Array<() => void> = [];
+
+function onRefreshed(): void {
+  refreshSubscribers.forEach(cb => cb());
+  refreshSubscribers = [];
+}
+
+function subscribeToRefresh(cb: () => void): void {
+  refreshSubscribers.push(cb);
+}
+
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
+
   async (error: AxiosError) => {
     const status = error.response?.status;
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
 
-    if (status === 401) {
-      window.location.href = '/signin';
-      return Promise.reject(error);
+    if (status === 401 && !originalRequest._retry) {
+      if (originalRequest.url?.includes('/api/auth/refresh')) {
+        window.location.href = '/signin';
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          subscribeToRefresh(() => resolve(apiClient(originalRequest)));
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await bffClient.post('/api/auth/refresh');
+        isRefreshing = false;
+        onRefreshed();
+        return apiClient(originalRequest);
+      } catch {
+        isRefreshing = false;
+        refreshSubscribers = [];
+        window.location.href = '/signin';
+        return Promise.reject(error);
+      }
     }
 
     if (status === 403) {
@@ -34,15 +75,9 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const originalRequest = error.config;
     const shouldShowToast = originalRequest?._showToastOnError !== false;
-
-    if (error.response && shouldShowToast) {
-      const errorData = error.response.data as { error?: string | { message?: string } };
-      const message
-        = typeof errorData.error === 'string'
-          ? errorData.error
-          : errorData?.error?.message || 'Erro inesperado.';
+    if (shouldShowToast && error.response) {
+      const message = extractErrorMessage(error.response.data);
       toast.error(message);
     }
 

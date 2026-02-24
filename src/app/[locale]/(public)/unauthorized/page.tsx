@@ -1,18 +1,12 @@
 'use client';
 
-import { useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { logoutAction } from '@/features/auth/actions/authActions';
-import '@/styles/global.css';
+import { useLogout } from '@/features/auth/hooks/useLogout';
+import { useRouter } from '@/lib/i18nNavigation';
 
 export default function UnauthorizedPage() {
-  const [isPending, startTransition] = useTransition();
-
-  const handleLogout = () => {
-    startTransition(async () => {
-      await logoutAction();
-    });
-  };
+  const { logout, isPending } = useLogout();
+  const router = useRouter();
 
   return (
     <div className="flex flex-col items-center">
@@ -25,11 +19,10 @@ export default function UnauthorizedPage() {
       </p>
 
       <div className="mt-6 flex gap-4">
-        <Button variant="outline" onClick={() => window.history.back()}>
+        <Button variant="outline" onClick={() => router.back()}>
           Voltar
         </Button>
-
-        <Button onClick={handleLogout} disabled={isPending}>
+        <Button onClick={() => logout()} disabled={isPending}>
           {isPending ? 'Saindo...' : 'Sair e ir para o Login'}
         </Button>
       </div>

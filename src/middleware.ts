@@ -10,20 +10,29 @@ const protectedPrefix = '/dashboard';
 
 export default function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  if (path.startsWith('/api/')) {
+    return NextResponse.next();
+  }
   const token = request.cookies.get('accessToken')?.value;
   const isProtectedRoute = path.includes(protectedPrefix);
   const isPublicRoute = publicRoutes.some(route => path.includes(route));
   const isRootLocalePath = routing.locales.some(locale => path === `/${locale}`);
+  const detectedLocale
+    = routing.locales.find(l => path.startsWith(`/${l}/`) || path === `/${l}`)
+      ?? routing.defaultLocale;
+  const urlLocalePrefix
+    = detectedLocale === routing.defaultLocale ? '' : `/${detectedLocale}`;
+
   if ((isProtectedRoute || isRootLocalePath) && !token) {
-    const locale = request.nextUrl.locale || routing.defaultLocale;
     if (!path.includes('/signin')) {
-      return NextResponse.redirect(new URL(`/${locale}/signin`, request.url));
+      return NextResponse.redirect(new URL(`${urlLocalePrefix}/signin`, request.url));
     }
   }
+
   if ((isPublicRoute || isRootLocalePath) && token) {
-    const locale = request.nextUrl.locale || routing.defaultLocale;
-    return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
+    return NextResponse.redirect(new URL(`${urlLocalePrefix}/dashboard`, request.url));
   }
+
   return intlMiddleware(request);
 }
 

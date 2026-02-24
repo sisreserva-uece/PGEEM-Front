@@ -1,17 +1,15 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { logoutAction } from '@/features/auth/actions/authActions';
+import { useEffect } from 'react';
+import { useLogout } from '@/features/auth/hooks/useLogout';
 
 export function ForceLogout() {
-  const called = useRef(false);
+  const { logout } = useLogout();
+
   useEffect(() => {
-    if (called.current) {
-      return;
-    }
-    called.current = true;
-    logoutAction();
-  }, []);
+    logout();
+  });
+
   return (
     <div className="flex h-screen w-full items-center justify-center bg-white">
       <div className="text-center">
