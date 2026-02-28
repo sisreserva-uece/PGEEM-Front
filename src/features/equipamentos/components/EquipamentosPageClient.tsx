@@ -101,6 +101,10 @@ export function EquipamentosPageClient() {
     if (filters.status) {
       filteredData = filteredData.filter(item => String(item.status) === filters.status);
     }
+    if (filters.reservavel !== undefined && filters.reservavel !== '') {
+      const boolVal = filters.reservavel === 'true';
+      filteredData = filteredData.filter(item => item.reservavel === boolVal);
+    }
     return filteredData;
   }, [allNonGenericEquipamentos, filters]);
   const tiposInUse = useMemo(() => {
@@ -169,7 +173,7 @@ export function EquipamentosPageClient() {
         )}
       </Tabs>
       {tipoSheetState.open && (
-        <TipoEquipamentoForm key={tipoSheetState.tipo?.id ?? 'new-tipo'} open={tipoSheetState.open} onOpenChange={isOpen => setTipoSheetState({ ...tipoSheetState, open: isOpen })} tipo={tipoSheetState.tipo} />
+        <TipoEquipamentoForm key={tipoSheetState.tipo?.id ?? 'new-tipo'} open={tipoSheetState.open} onOpenChange={(isOpen: any) => setTipoSheetState({ ...tipoSheetState, open: isOpen })} tipo={tipoSheetState.tipo} />
       )}
       {sheetState.open && (
         <MasterDetailSheet

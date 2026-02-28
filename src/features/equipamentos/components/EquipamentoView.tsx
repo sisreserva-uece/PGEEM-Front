@@ -4,6 +4,7 @@ import type { Equipamento } from '../types';
 import { CalendarDays, MapPin } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { BooleanBadge } from '@/components/ui/boolean-badge';
 import { RelatedItemLink } from '@/components/ui/related-item-link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -35,6 +36,9 @@ export function EquipamentoMainDataView({ entity: equipamento }: { entity: Equip
       <InfoItem label="Tipo">{equipamento.tipoEquipamento.nome}</InfoItem>
       <InfoItem label="Status" className="md:col-span-2">
         <Badge className={statusInfo.className}>{statusInfo.label}</Badge>
+      </InfoItem>
+      <InfoItem label="Pode ser Reservado" className="md:col-span-2">
+        <BooleanBadge value={equipamento.reservavel} />
       </InfoItem>
       <InfoItem label="Descrição" className="md:col-span-2">{equipamento.descricao}</InfoItem>
     </div>

@@ -66,8 +66,8 @@ export function EspacosFilterBar({ filters, onFilterChange, isFetching }: Espaco
         <FilterSelect
           placeholder="Pode ser Reservado?"
           options={booleanFilterOptions}
-          value={filters.reservavel ?? ''}
-          onValueChange={value => onFilterChange('reservavel', value || null)}
+          value={filters.reservavel || ''}
+          onValueChange={value => onFilterChange('reservavel', value)}
           disabled={isFetching}
           allOptionLabel="Todos"
         />
