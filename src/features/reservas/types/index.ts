@@ -14,8 +14,8 @@ export const ReservaStatusMap: Record<ReservaStatus, { label: string; className:
 
 export type Reserva = {
   id: string;
-  dataInicio: string; // ISO DateTime string
-  dataFim: string; // ISO DateTime string
+  dataInicio: string;
+  dataFim: string;
   status: ReservaStatus;
   espacoId?: string;
   equipamentoId?: string;

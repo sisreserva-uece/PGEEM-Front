@@ -32,3 +32,21 @@ export function RelatedItemLink({ href, icon, title, description, asideContent }
     </Link>
   );
 }
+
+type InlineItemLinkProps = {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+};
+
+export function InlineItemLink({ href, icon, title }: InlineItemLinkProps) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline transition-colors"
+    >
+      {icon}
+      {title}
+    </Link>
+  );
+}

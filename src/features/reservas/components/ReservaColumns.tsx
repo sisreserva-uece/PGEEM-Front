@@ -25,7 +25,7 @@ export const getReservaColumns = ({ onView, espacosMap }: GetColumnsProps): Colu
     header: ({ column }) => <DataTableColumnHeader column={column} title="Espaço" />,
     cell: ({ row }) => {
       const espacoId = row.original.espacoId;
-      return espacosMap.get(espacoId) ?? espacoId;
+      return espacosMap.get(espacoId as string) ?? espacoId;
     },
   },
   {

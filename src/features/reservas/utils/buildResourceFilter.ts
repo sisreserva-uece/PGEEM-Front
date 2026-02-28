@@ -1,4 +1,4 @@
-import type { ReservableResource } from '../types/reservableResource';
+import type { ReservableResource } from '@/features/reservas/types';
 
 export function buildResourceFilter(resource: ReservableResource) {
   if (resource.type === 'espaco') {

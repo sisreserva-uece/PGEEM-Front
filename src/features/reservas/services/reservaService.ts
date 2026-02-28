@@ -1,6 +1,5 @@
-import type { Reserva } from '../types';
+import type { Reserva, ReservableResource } from '../types';
 import type { ReservaCreatePayload } from '../validation/reservaSchema';
-import type { ReservableResource } from '@/features/reservas/types/reservableResource';
 import type { PaginatedResponse } from '@/types/api';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -43,6 +42,18 @@ export function useGetSolicitacoesByEspaco(params: Record<string, any>) {
     },
     placeholderData: keepPreviousData,
     enabled: !!params.espacoId,
+  });
+}
+
+export function useGetSolicitacoesByEspacoEquipamentos(params: Record<string, any>) {
+  return useQuery({
+    queryKey: ['solicitacoes', params],
+    queryFn: async () => {
+      const response = await apiClient.get<{ data: PaginatedResponse<Reserva> }>('/solicitacao-reserva', { params });
+      return response.data.data;
+    },
+    placeholderData: keepPreviousData,
+    enabled: !!params.espacoDoEquipamentoId,
   });
 }
 
