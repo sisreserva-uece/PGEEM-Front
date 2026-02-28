@@ -4,6 +4,7 @@ import type { TipoEquipamento } from '../types';
 import { DebouncedInput } from '@/components/ui/debounced-input';
 import { FilterBarContainer } from '@/components/ui/filter-bar-container';
 import { FilterSelect } from '@/components/ui/filter-select';
+import { booleanFilterOptions } from '@/lib/filterOptions';
 import { EquipamentoStatus } from '../types';
 
 type EquipamentosFilterBarProps = {
@@ -26,10 +27,10 @@ export function EquipamentosFilterBar({ filters, onFilterChange, isFetching, tip
 
   return (
     <FilterBarContainer activeFilters={filters} onClear={handleClear} isFetching={isFetching}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DebouncedInput
           placeholder="Buscar por tombamento..."
-          value={filters.tombamento}
+          value={filters.tombamento || ''}
           onDebouncedChange={value => onFilterChange('tombamento', value)}
           disabled={isFetching}
         />
@@ -48,6 +49,14 @@ export function EquipamentosFilterBar({ filters, onFilterChange, isFetching, tip
           onValueChange={value => onFilterChange('status', value)}
           disabled={isFetching}
           allOptionLabel="Todos os Status"
+        />
+        <FilterSelect
+          placeholder="Pode ser Reservado?"
+          options={booleanFilterOptions}
+          value={filters.reservavel || ''}
+          onValueChange={value => onFilterChange('reservavel', value)}
+          disabled={isFetching}
+          allOptionLabel="Todos"
         />
       </div>
     </FilterBarContainer>

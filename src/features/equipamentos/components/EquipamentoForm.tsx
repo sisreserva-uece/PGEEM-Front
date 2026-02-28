@@ -8,6 +8,7 @@ import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,8 +33,9 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
           descricao: equipamento.descricao || '',
           status: equipamento.status,
           tipoEquipamentoId: equipamento.tipoEquipamento.id,
+          reservavel: equipamento.reservavel,
         }
-      : { tombamento: '', descricao: '', status: EquipamentoStatus.ATIVO, tipoEquipamentoId: '' },
+      : { tombamento: '', descricao: '', status: EquipamentoStatus.ATIVO, tipoEquipamentoId: '', reservavel: false },
   });
   const nonGenericTipos = useMemo(() => {
     if (!allTiposData) {
@@ -50,6 +52,7 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
           id: equipamento.id,
           descricao: values.descricao,
           status: values.status,
+          reservavel: values.reservavel,
         })
       : createMutation.mutateAsync(values);
     toast.promise(promise, {
@@ -129,6 +132,22 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
                     <SelectItem value={String(EquipamentoStatus.EM_MANUTENCAO)}>Em Manutenção</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="reservavel"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center gap-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="font-normal cursor-pointer">Pode ser Reservado</FormLabel>
                 <FormMessage />
               </FormItem>
             )}

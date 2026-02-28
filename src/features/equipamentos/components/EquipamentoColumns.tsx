@@ -4,6 +4,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { Equipamento } from '../types';
 import { Eye, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { BooleanBadge } from '@/components/ui/boolean-badge';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { EquipamentoStatus } from '../types';
@@ -39,6 +40,11 @@ export const getEquipamentoColumns = ({ onEdit, onView, canView, canEdit }: GetE
       return <Badge className={statusInfo.className}>{statusInfo.label}</Badge>;
     },
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
+  },
+  {
+    accessorKey: 'reservavel',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Reservável" />,
+    cell: ({ row }) => <BooleanBadge value={row.original.reservavel} />,
   },
   {
     accessorKey: 'descricao',

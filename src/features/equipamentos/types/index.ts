@@ -18,6 +18,7 @@ export type Equipamento = {
   descricao: string | null;
   status: EquipamentoStatus;
   tipoEquipamento: TipoEquipamento;
+  reservavel: boolean;
 };
 
 export type EquipamentoEspacoLink = {

@@ -11,11 +11,13 @@ export const equipamentoSchema = z.object({
   descricao: z.string().optional(),
   status: z.nativeEnum(EquipamentoStatus, { errorMap: () => ({ message: 'Status é obrigatório.' }) }),
   tipoEquipamentoId: z.string().min(1, { message: 'O Tipo de Equipamento é obrigatório.' }),
+  reservavel: z.boolean(),
 });
 
 export const equipamentoUpdateSchema = equipamentoSchema.pick({
   descricao: true,
   status: true,
+  reservavel: true,
 });
 
 export const tipoEquipamentoUpdateSchema = tipoEquipamentoFormSchema.pick({
