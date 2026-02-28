@@ -1,136 +1,140 @@
 'use client';
 
 import { Download, Calendar, BarChart3 } from 'lucide-react'; 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner'; 
+import { relatorioFormSchema, RelatorioFormValues, meses } from '@/features/relatorios/validation/relatorioSchema';
+import { useDownloadRelatorioPdf } from '@/features/relatorios/services/RelatorioService';
 
 type ManageRelatoriosTabProps = {
   espacoId: string;
 };
 
-const MESES = [
-  { label: 'Janeiro', value: '01' }, { label: 'Fevereiro', value: '02' },
-  { label: 'Março', value: '03' }, { label: 'Abril', value: '04' },
-  { label: 'Maio', value: '05' }, { label: 'Junho', value: '06' },
-  { label: 'Julho', value: '07' }, { label: 'Agosto', value: '08' },
-  { label: 'Setembro', value: '09' }, { label: 'Outubro', value: '10' },
-  { label: 'Novembro', value: '11' }, { label: 'Dezembro', value: '12' },
-];
-
-const ANOS = ['2024', '2025', '2026'];
-
 export function ManageRelatoriosTab({ espacoId }: ManageRelatoriosTabProps) {
-  const [loading, setLoading] = useState(false);
+  const downloadMutation = useDownloadRelatorioPdf();
+  
+  const hoje = new Date();
+  const anoAtual = hoje.getFullYear();
+  const mesAtual = hoje.getMonth() + 1;
+  const anosDisponiveis = Array.from({ length: 3 }, (_, i) => anoAtual - 2 + i).reverse();
 
-  const handleGerarRelatorio = () => {
+  const { setValue, handleSubmit, watch, formState: { errors } } = useForm<RelatorioFormValues>({
+    resolver: zodResolver(relatorioFormSchema),
+    defaultValues: {
+      mes: mesAtual.toString().padStart(2, '0'),
+      ano: anoAtual.toString(),
+      espacoIds: [espacoId], 
+    }
+  });
 
-    toast.info('Funcionalidade em desenvolvimento', {
-      description: 'O módulo de exportação de PDF será liberado em breve.',
+  const selectedAno = watch('ano') || anoAtual.toString();
+
+  useEffect(() => {
+    setValue('espacoIds', [espacoId], { shouldValidate: true });
+  }, [espacoId, setValue]);
+
+  const onSubmit = async (data: RelatorioFormValues) => {
+    const payload = {
+      mes: data.mes ? parseInt(data.mes) : undefined,
+      ano: data.ano ? parseInt(data.ano) : undefined,
+      ids: [espacoId], 
+      tipo: 'espacos' as const,
+    };
+  
+    toast.promise(downloadMutation.mutateAsync(payload), {
+      loading: 'Gerando relatório PDF...',
+      success: 'Relatório gerado com sucesso!',
+      error: 'Erro ao gerar relatório para este período.',
     });
-    
-
-    setLoading(true);
-    setTimeout(() => setLoading(false), 1000);
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h3 className="text-lg font-semibold">Gerenciar Relatórios</h3>
-          <p className="text-sm text-muted-foreground">Configure os filtros e gere o relatório de uso em PDF.</p>
-        </div>
-        <Button 
-          type="button" 
-          onClick={handleGerarRelatorio} 
-          disabled={loading}
-          className="bg-green-600 hover:bg-green-700 text-white"
-        >
-          {loading ? (
-            'Aguarde...'
-          ) : (
-            <>
-              <Download className="mr-2 h-4 w-4" />
-              Baixar Relatório
-            </>
-          )}
-        </Button>
-      </div>
-
-
-      <div className="space-y-6 rounded-lg border p-4">
-
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 font-medium text-sm">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span>Período das Reservas</span>
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-[#1E293B]">Gerenciar Relatórios</h3>
+            <p className="text-sm text-muted-foreground">Selecione o período para exportar as estatísticas deste espaço.</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Início</Label>
-              <div className="flex gap-2">
-                <Select defaultValue="01">
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Mês" /></SelectTrigger>
+
+          <Button 
+            type="submit" 
+            disabled={downloadMutation.isPending}
+            className="bg-[#10B981] hover:bg-[#059669] text-white font-bold transition-all"
+          >
+            {downloadMutation.isPending ? (
+              'Processando...'
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Baixar Relatório PDF
+              </>
+            )}
+          </Button>
+        </div>
+
+        <div className="space-y-6 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 font-bold text-sm text-[#475569]">
+              <Calendar className="h-4 w-4 text-[#10B981]" />
+              <span>Período de Referência</span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-extrabold text-[#64748B]">Mês</Label>
+                <Select onValueChange={(v) => setValue('mes', v)} defaultValue={watch('mes')}>
+                  <SelectTrigger className="h-10 border-[#E2E8F0]">
+                    <SelectValue placeholder="Selecione o mês" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {MESES.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                    {meses.map((mes) => {
+                      const isFuturo = parseInt(selectedAno) === anoAtual && parseInt(mes.v) > mesAtual;
+                      return (
+                        <SelectItem key={mes.v} value={mes.v} disabled={isFuturo}>
+                          <span className={isFuturo ? "opacity-40" : ""}>{mes.l}</span>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
-                <Select defaultValue="2026">
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Ano" /></SelectTrigger>
+                {errors.mes && <p className="text-[10px] text-red-500 font-bold">{errors.mes.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-extrabold text-[#64748B]">Ano</Label>
+                <Select onValueChange={(v) => setValue('ano', v)} defaultValue={watch('ano')}>
+                  <SelectTrigger className="h-10 border-[#E2E8F0]">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {ANOS.map(ano => <SelectItem key={ano} value={ano}>{ano}</SelectItem>)}
+                    {anosDisponiveis.map(year => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fim</Label>
-              <div className="flex gap-2">
-                <Select defaultValue="12">
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Mês" /></SelectTrigger>
-                  <SelectContent>
-                    {MESES.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select defaultValue="2026">
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Ano" /></SelectTrigger>
-                  <SelectContent>
-                    {ANOS.map(ano => <SelectItem key={ano} value={ano}>{ano}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="h-[1px] bg-[#F1F5F9] w-full" />
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 font-bold text-sm text-[#475569]">
+              <BarChart3 className="h-4 w-4 text-[#10B981]" />
+              <span>Informações do Relatório</span>
             </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              O documento incluirá o estatísticas do espaço utilizado.
+            </p>
           </div>
         </div>
-
-        <div className="h-[1px] bg-border w-full" />
-
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 font-medium text-sm">
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            <span>Estatísticas de Uso</span>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="top-users" className="text-xs">Top usuários (mais frequentes)</Label>
-            <Select defaultValue="none">
-              <SelectTrigger id="top-users" className="h-9 w-full md:w-[250px]">
-                <SelectValue placeholder="Selecione a quantidade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Não incluir ranking</SelectItem>
-                <SelectItem value="5">Listar Top 5 usuários</SelectItem>
-                <SelectItem value="10">Listar Top 10 usuários</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+      </form>
     </div>
   );
 }

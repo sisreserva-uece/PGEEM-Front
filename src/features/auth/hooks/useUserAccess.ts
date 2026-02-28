@@ -7,10 +7,12 @@ import { useAuthStore } from '../store/authStore';
 export const useUserAccess = (espaco?: Espaco | null) => {
   const { user } = useAuthStore();
   const { data: managedEspacos, isLoading: isLoadingManagedEspacos } = useGetManagedEspacosForCurrentUser();
+
   const userRoles = useMemo(() => user?.cargos?.map(c => c.nome) || [], [user]);
   const managedEspacoIds = useMemo(() => managedEspacos?.map(link => link.espaco.id) || [], [managedEspacos]);
   const isGestorOfAnyEspaco = managedEspacoIds.length > 0;
   const isGestorOfCurrentEspaco = !!espaco && managedEspacoIds.includes(espaco.id);
+
   return useMemo(() => {
     const hasGlobalRole = (roles: UserRole[]) => {
       if (userRoles.includes('ADMIN')) {
@@ -18,6 +20,7 @@ export const useUserAccess = (espaco?: Espaco | null) => {
       }
       return roles.some(role => userRoles.includes(role));
     };
+
     return {
       isAdmin: hasGlobalRole(['ADMIN']),
       isLoading: isLoadingManagedEspacos,
@@ -38,10 +41,5 @@ export const useUserAccess = (espaco?: Espaco | null) => {
       canManageUsuarios: hasGlobalRole(['ADMIN']),
       canMakeReservation: true,
     };
-  }, [
-    isLoadingManagedEspacos,
-    isGestorOfAnyEspaco,
-    isGestorOfCurrentEspaco,
-    userRoles,
-  ]);
+  }, [isLoadingManagedEspacos, isGestorOfAnyEspaco, isGestorOfCurrentEspaco, userRoles]);
 };

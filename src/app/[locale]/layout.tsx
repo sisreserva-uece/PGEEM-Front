@@ -56,7 +56,7 @@ export default async function RootLayout(props: {
     <html lang={locale} className={`${inter.className}`}>
       <body suppressHydrationWarning className="antialiased">
         <AppProviders>
-          <SessionProvider user={user} accessToken={token}>
+          <SessionProvider user={user}>
             <NextIntlClientProvider locale={locale} messages={messages}>
               <div className="flex min-h-screen flex-col overflow-x-hidden">
                 <Header />

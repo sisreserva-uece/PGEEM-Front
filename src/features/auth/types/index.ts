@@ -57,10 +57,8 @@ export type SignUpRequest = Omit<SignUpFormValues, 'confirmSenha' | 'cargosNome'
 
 export type AuthState = {
   user: UserProfile | null;
-  accessToken: string | null;
   status: 'loading' | 'authenticated' | 'unauthenticated';
-  setAuth: (user: UserProfile, accessToken: string) => void;
-  setAccessToken: (accessToken: string) => void;
+  setAuth: (user: UserProfile) => void;
   clearAuth: () => void;
 };
 
