@@ -9,6 +9,7 @@ export type Espaco = {
   observacao: string | null;
   precisaProjeto: boolean;
   multiusuario: boolean;
+  reservavel: boolean;
   departamento: ApiSelectOption;
   localizacao: ApiSelectOption;
   tipoEspaco: ApiSelectOption;

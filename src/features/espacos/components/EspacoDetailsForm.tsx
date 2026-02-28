@@ -35,6 +35,7 @@ const initialValues: EspacoFormData = {
   tipoAtividadeIds: [],
   precisaProjeto: false,
   multiusuario: false,
+  reservavel: false,
 };
 
 export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFormProps) {
@@ -52,6 +53,7 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
           tipoAtividadeIds: espaco.tiposAtividade.map(t => t.id),
           precisaProjeto: espaco.precisaProjeto,
           multiusuario: espaco.multiusuario,
+          reservavel: espaco.reservavel,
         }
       : initialValues,
   });
@@ -72,6 +74,7 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
           observacao: values.observacao,
           precisaProjeto: values.precisaProjeto,
           multiusuario: values.multiusuario,
+          reservavel: values.reservavel, // ← ADD
           tipoAtividadeIds: values.tipoAtividadeIds,
         })
       : createMutation.mutateAsync(values);
@@ -354,7 +357,7 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
             />
           </div>
 
-          <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={form.control}
               name="precisaProjeto"
@@ -382,6 +385,24 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
                     <FormLabel className="text-base">Espaço Multiusuário?</FormLabel>
                     <FormDescription>
                       Pode ser usado por diferentes grupos.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="reservavel"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Pode ser Reservado?</FormLabel>
+                    <FormDescription>
+                      Permite que o espaço receba solicitações de reserva.
                     </FormDescription>
                   </div>
                   <FormControl>

@@ -40,6 +40,7 @@ export function EspacoMainDataView({ entity: espaco }: { entity: Espaco }) {
       <div className="flex flex-col gap-4 md:col-span-2 md:flex-row">
         <InfoItem label="Precisa de Projeto?">{espaco.precisaProjeto ? 'Sim' : 'Não'}</InfoItem>
         <InfoItem label="Multiusuário?">{espaco.multiusuario ? 'Sim' : 'Não'}</InfoItem>
+        <InfoItem label="Pode ser Reservado?">{espaco.reservavel ? 'Sim' : 'Não'}</InfoItem>
       </div>
       <InfoItem label="URL do CNPq" className="md:col-span-2">{espaco.urlCnpq || '-'}</InfoItem>
       <InfoItem label="Observação" className="md:col-span-2">{espaco.observacao || '-'}</InfoItem>

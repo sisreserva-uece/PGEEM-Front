@@ -30,13 +30,11 @@ export const getColumns = ({ onView, onEdit, canEdit }: GetColumnsProps): Column
     accessorKey: 'tipoEspaco.nome',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo de Espaço" />,
   },
-  // Updated Column for Array
   {
     accessorKey: 'tiposAtividade',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Atividades" />,
     cell: ({ row }) => {
       const atividades = row.original.tiposAtividade || [];
-      // Show first 2, then +X more
       const visible = atividades.slice(0, 2);
       const remainder = atividades.length - 2;
 
@@ -52,6 +50,13 @@ export const getColumns = ({ onView, onEdit, canEdit }: GetColumnsProps): Column
         </div>
       );
     },
+  },
+  {
+    accessorKey: 'reservavel',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Reservável" />,
+    cell: ({ row }) => row.original.reservavel
+      ? <Badge variant="outline" className="text-green-600 border-green-400 text-[10px] px-1 py-0">Sim</Badge>
+      : <Badge variant="outline" className="text-muted-foreground text-[10px] px-1 py-0">Não</Badge>,
   },
   {
     id: 'actions',

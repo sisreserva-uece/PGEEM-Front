@@ -10,6 +10,7 @@ export const espacoFormSchema = z.object({
   tipoAtividadeIds: z.array(z.string().uuid()).min(1, { message: 'Selecione pelo menos um tipo de atividade.' }),
   precisaProjeto: z.boolean(),
   multiusuario: z.boolean(),
+  reservavel: z.boolean(),
 });
 
 export const espacoUpdateSchema = espacoFormSchema.pick({
@@ -18,6 +19,7 @@ export const espacoUpdateSchema = espacoFormSchema.pick({
   observacao: true,
   precisaProjeto: true,
   multiusuario: true,
+  reservavel: true,
   tipoAtividadeIds: true,
 });
 
