@@ -3,6 +3,7 @@
 import { DebouncedInput } from '@/components/ui/debounced-input';
 import { FilterBarContainer } from '@/components/ui/filter-bar-container';
 import { FilterSelect } from '@/components/ui/filter-select';
+import { booleanFilterOptions } from '@/lib/filterOptions';
 import { useGetSelectOptions } from '../services/espacoService';
 
 type EspacosFilterBarProps = {
@@ -10,11 +11,6 @@ type EspacosFilterBarProps = {
   onFilterChange: (key: string, value: any) => void;
   isFetching: boolean;
 };
-
-const reservavelOptions = [
-  { id: 'true', nome: 'Sim' },
-  { id: 'false', nome: 'Não' },
-];
 
 export function EspacosFilterBar({ filters, onFilterChange, isFetching }: EspacosFilterBarProps) {
   const { data: departamentos } = useGetSelectOptions('/departamento', 'departamentos');
@@ -69,7 +65,7 @@ export function EspacosFilterBar({ filters, onFilterChange, isFetching }: Espaco
         />
         <FilterSelect
           placeholder="Pode ser Reservado?"
-          options={reservavelOptions}
+          options={booleanFilterOptions}
           value={filters.reservavel ?? ''}
           onValueChange={value => onFilterChange('reservavel', value || null)}
           disabled={isFetching}

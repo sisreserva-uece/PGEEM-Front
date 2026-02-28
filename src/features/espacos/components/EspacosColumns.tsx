@@ -4,6 +4,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { Espaco } from '../types';
 import { Eye, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { BooleanBadge } from '@/components/ui/boolean-badge';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
@@ -54,9 +55,7 @@ export const getColumns = ({ onView, onEdit, canEdit }: GetColumnsProps): Column
   {
     accessorKey: 'reservavel',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Reservável" />,
-    cell: ({ row }) => row.original.reservavel
-      ? <Badge variant="outline" className="text-green-600 border-green-400 text-[10px] px-1 py-0">Sim</Badge>
-      : <Badge variant="outline" className="text-muted-foreground text-[10px] px-1 py-0">Não</Badge>,
+    cell: ({ row }) => <BooleanBadge value={row.original.reservavel} />,
   },
   {
     id: 'actions',
