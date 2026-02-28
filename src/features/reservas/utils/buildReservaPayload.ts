@@ -8,14 +8,8 @@ export function buildReservaPayload(
   base: BasePayloadInput,
 ): ReservaCreatePayload {
   if (resource.type === 'espaco') {
-    return {
-      ...base,
-      espacoId: resource.id,
-    };
+    return { ...base, espacoId: resource.id };
   }
 
-  return {
-    ...base,
-    equipamentoId: resource.id,
-  };
+  return { ...base, equipamentoId: resource.id };
 }

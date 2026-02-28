@@ -12,6 +12,20 @@ export const ReservaStatusMap: Record<ReservaStatus, { label: string; className:
   [ReservaStatus.PENDENTE_AJUSTE]: { label: 'Pendente de Ajuste', className: 'bg-orange-500' },
 };
 
+export enum TipoRecorrencia {
+  NAO_REPETE = 0,
+  DIARIA = 1,
+  SEMANAL = 2,
+  MENSAL = 3,
+}
+
+export const TipoRecorrenciaMap: Record<TipoRecorrencia, string> = {
+  [TipoRecorrencia.NAO_REPETE]: 'Não se repete',
+  [TipoRecorrencia.DIARIA]: 'Diária',
+  [TipoRecorrencia.SEMANAL]: 'Semanal',
+  [TipoRecorrencia.MENSAL]: 'Mensal',
+};
+
 export type Reserva = {
   id: string;
   dataInicio: string;
@@ -21,6 +35,8 @@ export type Reserva = {
   equipamentoId?: string;
   usuarioSolicitanteId: string;
   projetoId: string | null;
+  tipoRecorrencia?: TipoRecorrencia;
+  reservaPaiId?: string | null;
 };
 
 export type ReservableResourceType = 'espaco' | 'equipamento';
