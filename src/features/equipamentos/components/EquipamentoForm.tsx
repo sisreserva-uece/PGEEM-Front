@@ -3,7 +3,7 @@
 import type { Equipamento } from '../types';
 import type { EquipamentoCreatePayload } from '../validation/equipamentoSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Info } from 'lucide-react';
+import { Info, FileText, Settings2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -12,9 +12,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import das Tabs
 import { useCreateEquipamento, useGetAllTiposEquipamento, useUpdateEquipamento } from '../services/equipamentoService';
 import { EquipamentoStatus } from '../types';
 import { equipamentoSchema } from '../validation/equipamentoSchema';
+import { ManageRelatoriosTab } from '@/features/espacos/components/ManageRelatoriosTab';
 
 type EquipamentoFormProps = {
   entity?: Equipamento | null;
@@ -24,6 +26,7 @@ type EquipamentoFormProps = {
 export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoFormProps) {
   const isEditMode = !!equipamento;
   const { data: allTiposData } = useGetAllTiposEquipamento();
+
   const form = useForm<EquipamentoCreatePayload>({
     resolver: zodResolver(equipamentoSchema),
     defaultValues: isEditMode
@@ -35,15 +38,16 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
         }
       : { tombamento: '', descricao: '', status: EquipamentoStatus.ATIVO, tipoEquipamentoId: '' },
   });
+
   const nonGenericTipos = useMemo(() => {
-    if (!allTiposData) {
-      return [];
-    }
+    if (!allTiposData) return [];
     return allTiposData.filter(tipo => tipo.isDetalhamentoObrigatorio);
   }, [allTiposData]);
+
   const createMutation = useCreateEquipamento();
   const updateMutation = useUpdateEquipamento();
   const isLoading = createMutation.isPending || updateMutation.isPending;
+
   const onSubmit = (values: EquipamentoCreatePayload) => {
     const promise = isEditMode
       ? updateMutation.mutateAsync({
@@ -52,6 +56,7 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
           status: values.status,
         })
       : createMutation.mutateAsync(values);
+
     toast.promise(promise, {
       loading: `${isEditMode ? 'Atualizando' : 'Criando'} equipamento...`,
       success: () => {
@@ -61,85 +66,109 @@ export function EquipamentoForm({ entity: equipamento, onSuccess }: EquipamentoF
       error: err => `Erro ao salvar equipamento: ${err.message}`,
     });
   };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="tombamento"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tombamento</FormLabel>
-                <FormControl><Input placeholder="Ex: 123456-ABC" {...field} disabled={isEditMode} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="tipoEquipamentoId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Equipamento</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Selecione um tipo" /></SelectTrigger></FormControl>
-                  <SelectContent>
-                    {nonGenericTipos.map(tipo => (
-                      <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {isEditMode && (
-            <div className="sm:col-span-2 flex items-start gap-2.5 text-red-700 border border-red-200 bg-red-50 p-3 rounded-md">
-              <Info className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
-              <p className="text-xs font-medium">
-                O Tombamento e o Tipo de Equipamento são definidos na criação e não podem ser alterados.
-              </p>
-            </div>
-          )}
-          <div className="sm:col-span-2">
-            <FormField
-              control={form.control}
-              name="descricao"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição (Opcional)</FormLabel>
-                  <FormControl><Textarea placeholder="Qualquer detalhe relevante sobre o item..." {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
+    <Tabs defaultValue="dados" className="w-full">
+      <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsTrigger value="dados" className="flex items-center gap-2">
+          <Settings2 className="h-4 w-4" /> Dados Principais
+        </TabsTrigger>
+        <TabsTrigger value="relatorio" disabled={!isEditMode} className="flex items-center gap-2">
+          <FileText className="h-4 w-4" /> Relatório
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="dados">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="tombamento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tombamento</FormLabel>
+                    <FormControl><Input placeholder="Ex: 123456-ABC" {...field} disabled={isEditMode} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tipoEquipamentoId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Equipamento</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isEditMode}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Selecione um tipo" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {nonGenericTipos.map(tipo => (
+                          <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isEditMode && (
+                <div className="sm:col-span-2 flex items-start gap-2.5 text-red-700 border border-red-200 bg-red-50 p-3 rounded-md">
+                  <Info className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <p className="text-xs font-medium">
+                    O Tombamento e o Tipo de Equipamento não podem ser alterados.
+                  </p>
+                </div>
               )}
-            />
-          </div>
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={val => field.onChange(Number(val))} defaultValue={String(field.value)}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Selecione um status" /></SelectTrigger></FormControl>
-                  <SelectContent>
-                    <SelectItem value={String(EquipamentoStatus.ATIVO)}>Ativo</SelectItem>
-                    <SelectItem value={String(EquipamentoStatus.INATIVO)}>Inativo</SelectItem>
-                    <SelectItem value={String(EquipamentoStatus.EM_MANUTENCAO)}>Em Manutenção</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="flex justify-end pt-4">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Salvando...' : 'Salvar Alterações'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+              <div className="sm:col-span-2">
+                <FormField
+                  control={form.control}
+                  name="descricao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição (Opcional)</FormLabel>
+                      <FormControl><Textarea placeholder="..." {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={val => field.onChange(Number(val))} defaultValue={String(field.value)}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Selecione um status" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value={String(EquipamentoStatus.ATIVO)}>Ativo</SelectItem>
+                        <SelectItem value={String(EquipamentoStatus.INATIVO)}>Inativo</SelectItem>
+                        <SelectItem value={String(EquipamentoStatus.EM_MANUTENCAO)}>Em Manutenção</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex justify-end pt-4">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Salvando...' : 'Salvar Alterações'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </TabsContent>
+
+      <TabsContent value="relatorio" className="py-4">
+        {isEditMode && equipamento ? (
+          <ManageRelatoriosTab id={equipamento.id} tipo="equipamentos" />
+        ) : (
+          <p className="text-center text-muted-foreground p-8 border border-dashed rounded-lg">
+            Salve o equipamento para liberar a exportação de relatórios.
+          </p>
+        )}
+      </TabsContent>
+    </Tabs>
   );
 }

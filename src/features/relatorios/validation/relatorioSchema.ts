@@ -1,30 +1,45 @@
 import { z } from 'zod';
 
 export const relatorioFormSchema = z.object({
-  mes: z.string().optional(),
-  ano: z.string().optional(),
-  espacoIds: z.array(z.string()).min(1, "Selecione pelo menos um item"),
-}).refine((data) => {
-  if (!data.mes || !data.ano) return true;
-
+  mesInicial: z.string(),
+  anoInicial: z.string(),
+  mesFinal: z.string(),
+  anoFinal: z.string(),
+  espacoIds: z.array(z.string()).min(1, "Selecione um espaço"),
+}).superRefine((data, ctx) => {
   const hoje = new Date();
   const anoAtual = hoje.getFullYear();
   const mesAtual = hoje.getMonth() + 1;
 
-  const anoSel = parseInt(data.ano);
-  const mesSel = parseInt(data.mes);
+  const ini = { m: parseInt(data.mesInicial), a: parseInt(data.anoInicial) };
+  const fim = { m: parseInt(data.mesFinal), a: parseInt(data.anoFinal) };
 
-  // Se o ano for futuro, bloqueia sempre
-  if (anoSel > anoAtual) return false;
+  if (ini.a > anoAtual || (ini.a === anoAtual && ini.m > mesAtual)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "A data inicial não pode ser futura",
+      path: ["mesInicial"],
+    });
+  }
 
-  // Se o ano for o atual, bloqueia se o mês for futuro
-  if (anoSel === anoAtual && mesSel > mesAtual) return false;
+  if (fim.a > anoAtual || (fim.a === anoAtual && fim.m > mesAtual)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "A data final não pode ser futura",
+      path: ["mesFinal"],
+    });
+  }
 
-  // Se o ano for anterior, retorna true.
-  return true;
-}, {
-  message: "Não é possível selecionar uma data futura.",
-  path: ["mes"],
+  const valorInicio = ini.a * 100 + ini.m;
+  const valorFim = fim.a * 100 + fim.m;
+
+  if (valorInicio > valorFim) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "O início do período não pode ser posterior ao fim",
+      path: ["mesInicial"], 
+    });
+  }
 });
 
 export type RelatorioFormValues = z.infer<typeof relatorioFormSchema>;

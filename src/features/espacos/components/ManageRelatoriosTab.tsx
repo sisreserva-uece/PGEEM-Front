@@ -1,7 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Download, Calendar, BarChart3 } from 'lucide-react'; 
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,46 +12,114 @@ import { relatorioFormSchema, RelatorioFormValues, meses } from '@/features/rela
 import { useDownloadRelatorioPdf } from '@/features/relatorios/services/RelatorioService';
 
 type ManageRelatoriosTabProps = {
-  espacoId: string;
+  id: string;
+  tipo: 'espacos' | 'equipamentos';
 };
 
-export function ManageRelatoriosTab({ espacoId }: ManageRelatoriosTabProps) {
+export function ManageRelatoriosTab({ id, tipo }: ManageRelatoriosTabProps) {
+  const [mounted, setMounted] = useState(false);
   const downloadMutation = useDownloadRelatorioPdf();
-  
   const hoje = new Date();
   const anoAtual = hoje.getFullYear();
   const mesAtual = hoje.getMonth() + 1;
-  const anosDisponiveis = Array.from({ length: 3 }, (_, i) => anoAtual - 2 + i).reverse();
+  const anoAtualStr = hoje.getFullYear().toString();
+  const mesAtualStr = (hoje.getMonth() + 1).toString().padStart(2, '0');
+  const anosDisponiveis = Array.from({ length: 5 }, (_, i) => anoAtual - 4 + i).reverse();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { setValue, handleSubmit, watch, formState: { errors } } = useForm<RelatorioFormValues>({
     resolver: zodResolver(relatorioFormSchema),
     defaultValues: {
-      mes: mesAtual.toString().padStart(2, '0'),
-      ano: anoAtual.toString(),
-      espacoIds: [espacoId], 
+      mesInicial: mesAtualStr,
+      anoInicial: anoAtualStr,
+      mesFinal: mesAtualStr,
+      anoFinal: anoAtualStr,
+      espacoIds: [id],
     }
   });
 
-  const selectedAno = watch('ano') || anoAtual.toString();
-
-  useEffect(() => {
-    setValue('espacoIds', [espacoId], { shouldValidate: true });
-  }, [espacoId, setValue]);
+  
+  const isDataFutura = (mes: string, ano: string) => {
+    if (!ano) return false;
+    const a = parseInt(ano);
+    const m = parseInt(mes);
+    if (a > anoAtual) return true;
+    if (a === anoAtual && m > mesAtual) return true;
+    return false;
+  };
 
   const onSubmit = async (data: RelatorioFormValues) => {
     const payload = {
-      mes: data.mes ? parseInt(data.mes) : undefined,
-      ano: data.ano ? parseInt(data.ano) : undefined,
-      ids: [espacoId], 
-      tipo: 'espacos' as const,
+      mesInicial: data.mesInicial ? parseInt(data.mesInicial) : undefined,
+      anoInicial: data.anoInicial ? parseInt(data.anoInicial) : undefined,
+      mesFinal: data.mesFinal ? parseInt(data.mesFinal) : undefined,
+      anoFinal: data.anoFinal ? parseInt(data.anoFinal) : undefined,
+      ids: [id],
+      tipo: tipo,
     };
   
     toast.promise(downloadMutation.mutateAsync(payload), {
       loading: 'Gerando relatório PDF...',
-      success: 'Relatório gerado com sucesso!',
-      error: 'Erro ao gerar relatório para este período.',
+      success: 'Relatório baixado!',
+      error: (err) => err.response?.data?.message || 'Erro ao gerar relatório.',
     });
   };
+
+  const renderSelectPeriodo = (tipo: 'Inicial' | 'Final') => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label className="text-[10px] uppercase font-extrabold text-[#64748B]">Mês {tipo}</Label>
+        <Select 
+          onValueChange={(v) => setValue(`mes${tipo}`, v === "none" ? "" : v)} 
+          value={watch(`mes${tipo}`) || "none"}
+        >
+          <SelectTrigger className="h-10 border-[#E2E8F0]">
+            <SelectValue placeholder="Atual (Padrão)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none" className="text-muted-foreground italic">
+              Mês Atual
+            </SelectItem>
+            {meses.map((mes) => {
+              const disabled = isDataFutura(mes.v, watch(`ano${tipo}`) || anoAtual.toString());
+              return (
+                <SelectItem key={mes.v} value={mes.v} disabled={disabled}>
+                  <span className={disabled ? "opacity-30" : ""}>{mes.l}</span>
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-[10px] uppercase font-extrabold text-[#64748B]">Ano {tipo}</Label>
+        <Select 
+          onValueChange={(v) => setValue(`ano${tipo}`, v === "none" ? "" : v)} 
+          value={watch(`ano${tipo}`) || "none"}
+        >
+          <SelectTrigger className="h-10 border-[#E2E8F0]">
+            <SelectValue placeholder="Ano Atual (Padrão)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none" className="text-muted-foreground italic">
+              Ano Atual
+            </SelectItem>
+            {anosDisponiveis.map(year => (
+              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
+  if (!mounted) {
+    return null; 
+  }
 
   return (
     <div className="space-y-6">
@@ -80,58 +148,29 @@ export function ManageRelatoriosTab({ espacoId }: ManageRelatoriosTabProps) {
 
         <div className="space-y-6 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
           <div className="space-y-4">
-            <div className="flex items-center gap-2 font-bold text-sm text-[#475569]">
-              <Calendar className="h-4 w-4 text-[#10B981]" />
-              <span>Período de Referência</span>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-extrabold text-[#64748B]">Mês</Label>
-                <Select onValueChange={(v) => setValue('mes', v)} defaultValue={watch('mes')}>
-                  <SelectTrigger className="h-10 border-[#E2E8F0]">
-                    <SelectValue placeholder="Selecione o mês" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {meses.map((mes) => {
-                      const isFuturo = parseInt(selectedAno) === anoAtual && parseInt(mes.v) > mesAtual;
-                      return (
-                        <SelectItem key={mes.v} value={mes.v} disabled={isFuturo}>
-                          <span className={isFuturo ? "opacity-40" : ""}>{mes.l}</span>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                {errors.mes && <p className="text-[10px] text-red-500 font-bold">{errors.mes.message}</p>}
+             <div className="text-sm font-bold text-[#475569]">Início do Período</div>
+             {renderSelectPeriodo('Inicial')} 
+              {errors.mesInicial && (
+                <p className="text-[10px] text-red-500 font-bold mt-1">{errors.mesInicial.message}</p>
+              )}
+              {errors.anoInicial && (
+                <p className="text-[10px] text-orange-500 font-bold mt-1">{errors.anoInicial.message}</p>
+              )}
+             <div className="flex flex-col gap-1 mt-2">
               </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-extrabold text-[#64748B]">Ano</Label>
-                <Select onValueChange={(v) => setValue('ano', v)} defaultValue={watch('ano')}>
-                  <SelectTrigger className="h-10 border-[#E2E8F0]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {anosDisponiveis.map(year => (
-                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
           </div>
-
+          
           <div className="h-[1px] bg-[#F1F5F9] w-full" />
 
           <div className="space-y-4">
-            <div className="flex items-center gap-2 font-bold text-sm text-[#475569]">
-              <BarChart3 className="h-4 w-4 text-[#10B981]" />
-              <span>Informações do Relatório</span>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              O documento incluirá o estatísticas do espaço utilizado.
-            </p>
+             <div className="text-sm font-bold text-[#475569]">Fim do Período</div>
+             {renderSelectPeriodo('Final')}
+             {errors.mesFinal && (
+              <p className="text-[10px] text-red-500 font-bold mt-1">{errors.mesFinal.message}</p>
+            )}
+            {errors.anoFinal && (
+              <p className="text-[10px] text-orange-500 font-bold mt-1">{errors.anoFinal.message}</p>
+            )}
           </div>
         </div>
       </form>
