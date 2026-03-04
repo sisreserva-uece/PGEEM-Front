@@ -43,7 +43,7 @@ apiClient.interceptors.response.use(
     };
 
     if (status === 401 && !originalRequest._retry) {
-      if (originalRequest.url?.includes('/api/auth/refresh')) {
+      if (originalRequest.url?.includes('/bff/auth/refresh')) {
         window.location.href = '/signin';
         return Promise.reject(error);
       }
@@ -58,7 +58,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await bffClient.post('/api/auth/refresh');
+        await bffClient.post('/bff/auth/refresh');
         isRefreshing = false;
         onRefreshed();
         return apiClient(originalRequest);

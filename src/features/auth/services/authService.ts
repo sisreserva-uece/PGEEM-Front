@@ -5,7 +5,7 @@ import bffClient from '@/lib/api/bffClient';
 
 export const authService = {
   signIn(credentials: SignInRequest) {
-    return bffClient.post<{ success: boolean }>('/api/auth/login', credentials);
+    return bffClient.post<{ success: boolean }>('/bff/auth/login', credentials);
   },
   signUp(userData: SignUpRequest) {
     return apiClient.post<void>('/auth/usuario', userData);
@@ -14,9 +14,6 @@ export const authService = {
     return apiClient.get<MeResponse>('/auth/usuario/me', config);
   },
   logout() {
-    return bffClient.post<{ success: boolean }>('/api/auth/logout');
-  },
-  refresh() {
-    return bffClient.post<{ success: boolean }>('/api/auth/refresh');
+    return bffClient.post<{ success: boolean }>('/bff/auth/logout');
   },
 };

@@ -10,7 +10,7 @@ const protectedPrefix = '/dashboard';
 
 export default function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  if (path.startsWith('/api/')) {
+  if (path.startsWith('/bff/')) {
     return NextResponse.next();
   }
   const token = request.cookies.get('accessToken')?.value;

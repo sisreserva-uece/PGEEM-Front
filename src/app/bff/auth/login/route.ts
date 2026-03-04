@@ -12,7 +12,7 @@ function getSetCookieHeaders(headers: Headers): string[] {
 
 function rewriteRefreshTokenPath(cookies: string[]): string[] {
   return cookies.map(cookie =>
-    cookie.replace(/;\s*Path=\/auth\/refresh/i, '; Path=/api/auth/refresh'),
+    cookie.replace(/;\s*Path=\/auth\/refresh/i, '; Path=/bff/auth/refresh'),
   );
 }
 

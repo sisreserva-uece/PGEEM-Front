@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   );
   nextResponse.headers.append(
     'Set-Cookie',
-    'refreshToken=; Path=/api/auth/refresh; Max-Age=0; HttpOnly; SameSite=Lax',
+    'refreshToken=; Path=/bff/auth/refresh; Max-Age=0; HttpOnly; SameSite=Lax',
   );
 
   return nextResponse;
