@@ -1,3 +1,5 @@
+// config/routes.config.ts
+
 import type { UserRole } from '@/features/auth/types';
 
 export type SubItem = {
@@ -45,6 +47,11 @@ export const routesConfig: RouteConfig[] = [
         title: 'Gerenciar Equipamentos',
         href: '/dashboard/equipamentos?tab=equipamentos',
         allowedRoles: ['ADMIN', 'USUARIO_INTERNO', 'USUARIO_EXTERNO'],
+      },
+      {
+        title: 'Gerenciar Equipamentos Genéricos',
+        href: '/dashboard/equipamentos-genericos',
+        allowedRoles: ['ADMIN'],
       },
       {
         title: 'Gerenciar Tipos',
