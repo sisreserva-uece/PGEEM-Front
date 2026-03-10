@@ -39,7 +39,7 @@ export function EspacoForm({ entity: espaco, onSuccess }: EspacoFormProps) {
       </TabsContent>
 
       <TabsContent value="espaco-relatorio" className="mt-4">
-        {isEditMode && espaco ? <ManageRelatoriosTab espacoId={espaco.id} /> : <p className="text-center text-muted-foreground p-4">Salve o espaço primeiro para poder adicionar relatórios.</p>}
+        {isEditMode && espaco ? <ManageRelatoriosTab id={espaco.id} tipo="espacos"/> : <p className="text-center text-muted-foreground p-4">Salve o espaço primeiro para poder adicionar relatórios.</p>}
       </TabsContent>
     </Tabs>
   );

@@ -172,19 +172,18 @@ export function EquipamentosPageClient() {
         <TipoEquipamentoForm key={tipoSheetState.tipo?.id ?? 'new-tipo'} open={tipoSheetState.open} onOpenChange={isOpen => setTipoSheetState({ ...tipoSheetState, open: isOpen })} tipo={tipoSheetState.tipo} />
       )}
       {sheetState.open && (
-        <MasterDetailSheet
-          key={sheetState.equipamento?.id ?? 'new-equipamento'}
-          open={sheetState.open}
-          onOpenChange={isOpen => setSheetState({ ...sheetState, open: isOpen })}
-          entity={sheetState.equipamento}
-          entityName="Equipamento"
-          initialMode={sheetMode}
-          canEdit={access.canEditEquipamento}
-          FormComponent={EquipamentoForm}
-          MainDataViewComponent={EquipamentoMainDataView}
-          RelationsViewComponent={EquipamentoRelationsView}
-        />
-      )}
+      <MasterDetailSheet
+        key={sheetState.equipamento?.id ?? 'new-equipamento'}
+        open={sheetState.open}
+        onOpenChange={isOpen => setSheetState({ ...sheetState, open: isOpen })}
+        entity={sheetState.equipamento}
+        entityName="Equipamento"
+        initialMode={sheetMode}
+        canEdit={access.canEditEquipamento}
+        FormComponent={EquipamentoForm}
+        MainDataViewComponent={EquipamentoMainDataView}
+      />
+    )}
     </div>
   );
 }

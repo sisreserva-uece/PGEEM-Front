@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Calendar, FileText, Download, CheckCircle2 } from 'lucide-react';
+import { Calendar, FileText, Download, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,24 +20,30 @@ export function RelatorioConfigDialog({
   idsSelecionados = [], 
   listaNomes = []       
 }: RelatorioConfigProps){
+  const [mounted, setMounted] = React.useState(false);
   const downloadMutation = useDownloadRelatorioPdf();
   
+  const hoje = new Date();
+  const anoAtualStr = hoje.getFullYear().toString();
+  const mesAtualStr = (hoje.getMonth() + 1).toString().padStart(2, '0');
+  const anoAtual = hoje.getFullYear();
+  const mesAtual = hoje.getMonth() + 1;
+
   const { setValue, handleSubmit, watch, formState: { errors } } = useForm<RelatorioFormValues>({
     resolver: zodResolver(relatorioFormSchema),
     defaultValues: {
-      mes: '01',
-      ano: '2026',
+      mesInicial: mesAtualStr,
+      anoInicial: anoAtualStr,
+      mesFinal: mesAtualStr,
+      anoFinal: anoAtualStr,
       espacoIds: idsSelecionados,
     }
   });
 
-  const selectedAno = watch('ano') || new Date().getFullYear().toString(); 
-  const hoje = new Date();
-  const anoAtual = hoje.getFullYear();
-  const mesAtual = hoje.getMonth() + 1;
-  const anosDisponiveis = Array.from({ length: 3 }, (_, i) => anoAtual - 2 + i).reverse();
+  const anosDisponiveis = Array.from({ length: 5 }, (_, i) => anoAtual - 4 + i).reverse();
 
   useEffect(() => {
+    setMounted(true);
     if (idsSelecionados && idsSelecionados.length > 0) {
       setValue('espacoIds', idsSelecionados, { shouldValidate: true });
     }
@@ -45,10 +51,12 @@ export function RelatorioConfigDialog({
 
   const onSubmit = async (data: RelatorioFormValues) => {
     const payload = {
-      mes: data.mes ? parseInt(data.mes) : undefined,
-      ano: data.ano ? parseInt(data.ano) : undefined,
+      mesInicial: parseInt(data.mesInicial),
+      anoInicial: parseInt(data.anoInicial),
+      mesFinal: parseInt(data.mesFinal),
+      anoFinal: parseInt(data.anoFinal),
       ids: idsSelecionados, 
-      tipo: tipo,
+      tipo: tipo, 
     };
   
     toast.promise(downloadMutation.mutateAsync(payload), {
@@ -58,99 +66,107 @@ export function RelatorioConfigDialog({
     });
   };
 
+  if (!mounted) {
+    return null; 
+  }
+
+  const renderPeriodoFields = (label: string, prefix: 'Inicial' | 'Final') => (
+    <div className="space-y-3 p-3 rounded-lg border border-slate-100 bg-slate-50/50">
+      <Label className="text-xs font-bold text-[#475569] uppercase flex items-center gap-2">
+        <Calendar className="h-3 w-3 text-[#10B981]" /> {label}
+      </Label>
+      <div className="grid grid-cols-2 gap-3">
+        <Select 
+          onValueChange={(v) => setValue(`mes${prefix}`, v, { shouldValidate: true })} 
+          value={watch(`mes${prefix}`)}
+        >
+          <SelectTrigger className="h-9 bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {meses.map((m) => {
+              const anoSel = watch(`ano${prefix}`);
+              const isFuturo = parseInt(anoSel) === anoAtual && parseInt(m.v) > mesAtual;
+              return (
+                <SelectItem key={m.v} value={m.v} disabled={isFuturo}>
+                  <span className={isFuturo ? "opacity-30" : ""}>{m.l}</span>
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+
+        <Select 
+          onValueChange={(v) => setValue(`ano${prefix}`, v, { shouldValidate: true })} 
+          value={watch(`ano${prefix}`)}
+        >
+          <SelectTrigger className="h-9 bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {anosDisponiveis.map(y => (
+              <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             <FileText className="h-5 w-5 text-[#10B981]" />
-            Gerar Relatório de {tipo === 'espacos' ? 'Espaços' : 'Equipamentos'}
+            Relatório de {tipo === 'espacos' ? 'Espaços' : 'Equipamentos'}
           </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground">
-            Configure o período e os detalhes para a exportação do arquivo PDF.
+          <DialogDescription>
+            Defina o intervalo de tempo para as estatísticas dos itens selecionados.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
-
-          <div className="space-y-3">
-            <Label className="flex items-center justify-between font-bold text-[#475569]">
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-[#10B981]" /> Itens Selecionados
-              </span>
-            </Label>
-            <ScrollArea className="h-[100px] border rounded-md bg-slate-50 p-2">
-                    <div className="grid grid-cols-2 gap-2">
-              {listaNomes && listaNomes.length > 0 ? (
-                listaNomes.map((nome, i) => (
-                  <div key={i} className="text-[10px] bg-white p-1 border rounded truncate uppercase font-medium">
-                    • {nome}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-2">
+            <Label className="text-[11px] font-bold text-slate-500 uppercase">Itens incluídos no PDF</Label>
+            <ScrollArea className="h-[80px] w-full border rounded-md bg-slate-50 p-2">
+              <div className="flex flex-wrap gap-1">
+                {listaNomes.map((nome, i) => (
+                  <div key={i} className="text-[9px] bg-white px-2 py-0.5 border border-slate-200 rounded-full text-slate-600 font-semibold">
+                    {nome}
                   </div>
-                ))
-              ) : (
-                <p className="text-xs text-muted-foreground col-span-2 text-center py-4">
-                  Nenhum item selecionado.
-                </p>
-              )}
-            </div>
+                ))}
+              </div>
             </ScrollArea>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-      <Label className="flex items-center gap-2 text-[#475569] font-semibold">
-        <Calendar className="h-4 w-4" /> Mês de Referência
-      </Label>
-      <Select onValueChange={(v) => setValue('mes', v)} defaultValue={watch('mes')}>
-        <SelectTrigger className="h-10 border-[#E2E8F0]">
-          <SelectValue placeholder="Selecione o mês" />
-        </SelectTrigger>
-        <SelectContent>
-          {meses.map((mes) => {
-            const isFuturo = parseInt(selectedAno) === anoAtual && parseInt(mes.v) > mesAtual;
+          <div className="space-y-4">
+            {renderPeriodoFields("Início do Período", "Inicial")}
+            {renderPeriodoFields("Fim do Período", "Final")}
 
-            return (
-              <SelectItem 
-                key={mes.v} 
-                value={mes.v} 
-                disabled={isFuturo}
-              >
-                <span className={isFuturo ? "text-slate-300 opacity-50" : ""}>
-                  {mes.l}
-                </span>
-              </SelectItem>
-            );
-          })}
-        </SelectContent>
-      </Select>
-        {errors.mes && <span className="text-xs text-red-500">{errors.mes.message}</span>}
-      </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">Ano</Label>
-                <Select onValueChange={(v) => setValue('ano', v)} defaultValue={watch('ano')}>
-                  <SelectTrigger className="h-10 border-[#E2E8F0]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                  {anosDisponiveis.map(year => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {(errors.mesInicial || errors.mesFinal) && (
+              <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 border border-red-100 text-red-600">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="flex flex-col gap-1">
+                  {errors.mesInicial && <p className="text-xs font-bold">{errors.mesInicial.message}</p>}
+                  {errors.mesFinal && <p className="text-xs font-bold">{errors.mesFinal.message}</p>}
+                </div>
+              </div>
+            )}
           </div>
 
-          <DialogFooter className="pt-4 border-t">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <DialogFooter className="pt-4 gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
             <Button 
               type="submit" 
-              className="bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+              className="bg-[#10B981] hover:bg-[#059669] text-white px-8"
               disabled={downloadMutation.isPending || idsSelecionados.length === 0}
             >
-              <Download className="mr-2 h-4 w-4" />
-              {downloadMutation.isPending ? 'Processando...' : 'Baixar PDF'}
+              {downloadMutation.isPending ? 'Gerando...' : (
+                <><Download className="mr-2 h-4 w-4" /> Gerar PDF</>
+              )}
             </Button>
           </DialogFooter>
         </form>
