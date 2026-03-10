@@ -1,57 +1,5 @@
 import { z } from 'zod';
 
-export const relatorioFormSchema = z.object({
-  mesInicial: z.string(),
-  anoInicial: z.string(),
-  mesFinal: z.string(),
-  anoFinal: z.string(),
-  espacoIds: z.array(z.string()).min(1, "Selecione um espaço"),
-}).superRefine((data, ctx) => {
-  const hoje = new Date();
-  const anoAtual = hoje.getFullYear();
-  const mesAtual = hoje.getMonth() + 1;
-
-  const ini = { m: parseInt(data.mesInicial), a: parseInt(data.anoInicial) };
-  const fim = { m: parseInt(data.mesFinal), a: parseInt(data.anoFinal) };
-
-  if (ini.a > anoAtual || (ini.a === anoAtual && ini.m > mesAtual)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "A data inicial não pode ser futura",
-      path: ["mesInicial"],
-    });
-  }
-
-  if (fim.a > anoAtual || (fim.a === anoAtual && fim.m > mesAtual)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "A data final não pode ser futura",
-      path: ["mesFinal"],
-    });
-  }
-
-  const valorInicio = ini.a * 100 + ini.m;
-  const valorFim = fim.a * 100 + fim.m;
-
-  if (valorInicio > valorFim) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "O início do período não pode ser posterior ao fim",
-      path: ["mesInicial"], 
-    });
-  }
-});
-
-export type RelatorioFormValues = z.infer<typeof relatorioFormSchema>;
-
-export type RelatorioConfigProps = {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  tipo: 'espacos' | 'equipamentos';
-  idsSelecionados: string[]; 
-  listaNomes: string[];     
-};
-
 export const meses = [
   { v: '01', l: 'Janeiro' }, { v: '02', l: 'Fevereiro' },
   { v: '03', l: 'Março' }, { v: '04', l: 'Abril' },
@@ -60,3 +8,39 @@ export const meses = [
   { v: '09', l: 'Setembro' }, { v: '10', l: 'Outubro' },
   { v: '11', l: 'Novembro' }, { v: '12', l: 'Dezembro' },
 ];
+
+const dataFields = {
+  mesInicial: z.string().min(1, "Obrigatório"),
+  anoInicial: z.string().min(1, "Obrigatório"),
+  mesFinal: z.string().min(1, "Obrigatório"),
+  anoFinal: z.string().min(1, "Obrigatório"),
+};
+
+const validarDatas = (data: any, ctx: z.RefinementCtx) => {
+  const hoje = new Date();
+  const valorInicio = parseInt(data.anoInicial) * 100 + parseInt(data.mesInicial);
+  const valorFim = parseInt(data.anoFinal) * 100 + parseInt(data.mesFinal);
+  const valorHoje = hoje.getFullYear() * 100 + (hoje.getMonth() + 1);
+
+  if (valorInicio > valorHoje) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Início futuro", path: ["mesInicial"] });
+  if (valorFim > valorHoje) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Fim futuro", path: ["mesFinal"] });
+  if (valorInicio > valorFim) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Início após o fim", path: ["mesInicial"] });
+};
+
+export const dashboardFilterSchema = z.object({
+  ...dataFields,
+  equipamentoIds: z.array(z.string()).optional(),
+  tipoEquipamentoId: z.string().optional(),
+  multiusuario: z.boolean().optional(),
+  espacoIds: z.array(z.string()).optional(),
+  departamentoId: z.string().optional(),
+  localizacaoId: z.string().optional(),
+}).superRefine(validarDatas);
+
+export const relatorioFormSchema = z.object({
+  ...dataFields,
+  espacoIds: z.array(z.string()).min(1, "Selecione um espaço"),
+}).superRefine(validarDatas);
+
+export type DashboardFilterValues = z.infer<typeof dashboardFilterSchema>;
+export type RelatorioFormValues = z.infer<typeof relatorioFormSchema>;

@@ -1,12 +1,13 @@
 'use client';
 
-import { Download } from 'lucide-react';
+import { Download, BarChart3 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RelatorioConfigDialog } from './RelatorioConfigDialog';
 import { RelatorioEspacosTab } from './RelatoriosEspacosTab';
+import { RelatorioDashboard } from './RelatorioDashboard';
 import { RelatorioEquipamentosTab } from './RelatoriosEquipamentosTab';
 import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 
@@ -18,6 +19,7 @@ export function RelatoriosPageClient() {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
+  const [isDashOpen, setIsDashOpen] = useState(false);
 
   const activeTab = searchParams.get('tab') === 'equipamentos' ? 'equipamentos' : 'espacos';
 
@@ -45,14 +47,24 @@ export function RelatoriosPageClient() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button 
-            onClick={() => setIsConfigOpen(true)}
-            className="bg-[#10B981] hover:bg-[#059669] text-white font-bold"
-            disabled={selectedIds.length === 0}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Gerar Relatório ({selectedIds.length})
-          </Button>
+        <Button 
+          onClick={() => setIsDashOpen(true)}
+          variant="outline"
+          className="border-[#10B981] text-[#10B981] hover:bg-[#10B981]/10 font-bold"
+          disabled={selectedIds.length === 0}
+        >
+          <BarChart3 className="mr-2 h-4 w-4" />
+          Ver Dashboard ({selectedIds.length})
+        </Button>
+        
+        <Button 
+          onClick={() => setIsConfigOpen(true)}
+          className="bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+          disabled={selectedIds.length === 0}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Gerar Relatório ({selectedIds.length})
+        </Button>
         </div>
       </div>
 
@@ -77,6 +89,13 @@ export function RelatoriosPageClient() {
         tipo={activeTab}
         idsSelecionados={selectedIds || []}
         listaNomes={selectedNames || []}
+      />
+
+      <RelatorioDashboard 
+        isOpen={isDashOpen}
+        onOpenChange={setIsDashOpen}
+        tipo={activeTab}
+        idsSelecionados={selectedIds}
       />
     </div>
   );
