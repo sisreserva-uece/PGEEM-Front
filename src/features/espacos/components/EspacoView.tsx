@@ -1,8 +1,17 @@
 'use client';
 
 import type { Espaco } from '../types';
-import { AlertTriangle, CalendarDays, HardDrive, Layers, ShieldCheck, User, Wrench, XCircle } from 'lucide-react'; // [NEW] Layers icon added
-import React, { useMemo } from 'react';
+import {
+  AlertTriangle,
+  CalendarDays,
+  HardDrive,
+  Layers,
+  ShieldCheck,
+  User,
+  Wrench,
+  XCircle,
+} from 'lucide-react';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { RelatedItemLink } from '@/components/ui/related-item-link';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,14 +20,18 @@ import { InfoItem } from '@/features/equipamentos/components/EquipamentoView';
 import { EquipamentoStatus } from '@/features/equipamentos/types';
 import { useGetEspacoGestores, useGetLinkedEquipamentos } from '../services/espacoService';
 import { EspacoAgendaTab } from './EspacoAgendaTab';
-import { ManageEquipamentosGenericosTab } from './ManageEquipamentosGenericosTab'; // [NEW]
+import { ManageEquipamentosGenericosTab } from './ManageEquipamentosGenericosTab';
 
 const getStatusInfo = (status: EquipamentoStatus) => {
   switch (status) {
-    case EquipamentoStatus.ATIVO: return { text: 'Ativo', color: 'bg-green-500', icon: ShieldCheck };
-    case EquipamentoStatus.INATIVO: return { text: 'Inativo', color: 'bg-red-500', icon: XCircle };
-    case EquipamentoStatus.EM_MANUTENCAO: return { text: 'Manutenção', color: 'bg-yellow-500', icon: Wrench };
-    default: return { text: 'Desconhecido', color: 'bg-gray-500', icon: AlertTriangle };
+    case EquipamentoStatus.ATIVO:
+      return { text: 'Ativo', color: 'bg-green-500', icon: ShieldCheck };
+    case EquipamentoStatus.INATIVO:
+      return { text: 'Inativo', color: 'bg-red-500', icon: XCircle };
+    case EquipamentoStatus.EM_MANUTENCAO:
+      return { text: 'Manutenção', color: 'bg-yellow-500', icon: Wrench };
+    default:
+      return { text: 'Desconhecido', color: 'bg-gray-500', icon: AlertTriangle };
   }
 };
 
@@ -49,36 +62,13 @@ export function EspacoMainDataView({ entity: espaco }: { entity: Espaco }) {
   );
 }
 
-type EspacoRelationsViewProps = {
-  entity: Espaco;
-};
-
-export function EspacoRelationsView({ entity: espaco }: EspacoRelationsViewProps) {
+export function EspacoRelationsView({ entity: espaco }: { entity: Espaco }) {
   const { data: gestorLinks, isLoading: isLoadingGestores } = useGetEspacoGestores(espaco.id);
   const { data: equipamentoLinks, isLoading: isLoadingEquipamentos } = useGetLinkedEquipamentos(espaco.id);
-
-  const { specificItems, genericItemsGrouped } = useMemo(() => {
-    const specific: any[] = [];
-    const genericMap = new Map<string, { count: number; items: any[] }>();
-    equipamentoLinks?.forEach((link) => {
-      if (link.equipamento.tipoEquipamento.isDetalhamentoObrigatorio) {
-        specific.push(link);
-      } else {
-        const tipoId = link.equipamento.tipoEquipamento.id;
-        if (!genericMap.has(tipoId)) {
-          genericMap.set(tipoId, { count: 0, items: [] });
-        }
-        genericMap.get(tipoId)!.items.push(link);
-        genericMap.get(tipoId)!.count++;
-      }
-    });
-    return { specificItems: specific, genericItemsGrouped: Array.from(genericMap.values()) };
-  }, [equipamentoLinks]);
 
   const activeGestores = gestorLinks?.filter(link => link.estaAtivo) ?? [];
 
   return (
-  // [NEW] grid-cols-3 → grid-cols-4 to accommodate the new tab
     <Tabs defaultValue="agenda" className="w-full">
       <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="agenda">
@@ -97,11 +87,9 @@ export function EspacoRelationsView({ entity: espaco }: EspacoRelationsViewProps
           {isLoadingEquipamentos ? '...' : equipamentoLinks?.length ?? 0}
           )
         </TabsTrigger>
-
-        {/* [NEW] Generic equipment tab */}
         <TabsTrigger value="equipamentos-genericos">
           <Layers className="mr-2 h-4 w-4" />
-          Por Quantidade
+          Eq. Genéricos
         </TabsTrigger>
       </TabsList>
 
@@ -114,68 +102,49 @@ export function EspacoRelationsView({ entity: espaco }: EspacoRelationsViewProps
           {isLoadingGestores
             ? <Skeleton className="h-12 w-full" />
             : activeGestores.length > 0
-              ? (
-                  activeGestores.map(link => (
-                    <div key={link.id} className="flex items-center gap-3 p-2">
-                      <User className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium text-sm">{link.gestor.nome}</p>
-                        <p className="text-xs text-muted-foreground">{link.gestor.email}</p>
-                      </div>
+              ? activeGestores.map(link => (
+                  <div key={link.id} className="flex items-center gap-3 p-2">
+                    <User className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium text-sm">{link.gestor.nome}</p>
+                      <p className="text-xs text-muted-foreground">{link.gestor.email}</p>
                     </div>
-                  ))
-                )
+                  </div>
+                ))
               : <p className="text-center text-sm text-muted-foreground p-4">Nenhum gestor vinculado.</p>}
         </div>
       </TabsContent>
 
       <TabsContent value="equipamentos" className="mt-4">
-        <div className="space-y-4 rounded-lg border p-4 min-h-[100px]">
+        <div className="space-y-2 rounded-lg border p-4 min-h-[100px]">
           {isLoadingEquipamentos
             ? <Skeleton className="h-20 w-full" />
             : (equipamentoLinks?.length ?? 0) > 0
-                ? (
-                    <>
-                      {specificItems.map((link) => {
-                        const statusInfo = getStatusInfo(link.equipamento.status);
-                        const Icon = statusInfo.icon;
-                        return (
-                          <RelatedItemLink
-                            key={link.id}
-                            href={`/dashboard/equipamentos?open=${link.equipamento.id}`}
-                            icon={<HardDrive className="h-5 w-5 text-muted-foreground" />}
-                            title={link.equipamento.tombamento}
-                            description={link.equipamento.descricao}
-                            asideContent={(
-                              <Badge className={`${statusInfo.color} text-white hover:${statusInfo.color} flex items-center gap-1 text-xs`}>
-                                <Icon className="h-3 w-3" />
-                                <span>{statusInfo.text}</span>
-                              </Badge>
-                            )}
-                          />
-                        );
-                      })}
-                      {genericItemsGrouped.map((group, index) => (
-                        <div key={index} className="flex items-center gap-3">
-                          <HardDrive className="h-5 w-5 text-muted-foreground opacity-60" />
-                          <div>
-                            <p className="font-medium text-sm">
-                              {group.count}
-                              x
-                              {' '}
-                              {group.items[0].equipamento.tipoEquipamento.nome}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Item genérico</p>
-                          </div>
-                        </div>
-                      ))}
-                    </>
-                  )
+                ? equipamentoLinks!.map((link) => {
+                    const statusInfo = getStatusInfo(link.equipamento.status);
+                    const Icon = statusInfo.icon;
+                    return (
+                      <RelatedItemLink
+                        key={link.id}
+                        href={`/dashboard/equipamentos?open=${link.equipamento.id}`}
+                        icon={<HardDrive className="h-5 w-5 text-muted-foreground" />}
+                        title={link.equipamento.tombamento}
+                        description={`${link.equipamento.tipoEquipamento.nome}${link.equipamento.descricao ? ` · ${link.equipamento.descricao}` : ''}`}
+                        asideContent={(
+                          <Badge
+                            className={`${statusInfo.color} text-white hover:${statusInfo.color} flex items-center gap-1 text-xs`}
+                          >
+                            <Icon className="h-3 w-3" />
+                            <span>{statusInfo.text}</span>
+                          </Badge>
+                        )}
+                      />
+                    );
+                  })
                 : <p className="text-center text-sm text-muted-foreground p-4">Nenhum equipamento vinculado.</p>}
         </div>
       </TabsContent>
 
-      {/* [NEW] Generic equipment tab content — fully delegated to ManageEquipamentosGenericosTab */}
       <TabsContent value="equipamentos-genericos" className="mt-4">
         <ManageEquipamentosGenericosTab espacoId={espaco.id} />
       </TabsContent>

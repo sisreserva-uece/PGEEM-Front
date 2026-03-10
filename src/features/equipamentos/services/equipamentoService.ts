@@ -6,7 +6,6 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import apiClient from '@/lib/api/apiClient';
 import { fetchAllPaginated } from '@/lib/api/fetchAllPaginated';
 import { createCrudHooks } from '@/lib/hooks/useCrud';
-import { EquipamentoStatus } from '../types';
 
 export const {
   useGet: useGetTiposEquipamento,
@@ -28,12 +27,11 @@ export function useUpdateEquipamento() {
       if (!usuarioId) {
         throw new Error('Usuário não autenticado para realizar a operação.');
       }
-      const payload = { ...data, usuarioId };
-      return apiClient.put(`/equipamento/${id}`, payload);
+      return apiClient.put(`/equipamento/${id}`, { ...data, usuarioId });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['equipamento'] });
-      await queryClient.invalidateQueries({ queryKey: ['nonGenericEquipamentos'] });
+      await queryClient.invalidateQueries({ queryKey: ['allEquipamentos'] });
       await queryClient.invalidateQueries({ queryKey: ['equipamento/tipo'] });
     },
   });
@@ -47,12 +45,11 @@ export function useLinkEquipamentosToEspaco() {
       if (!user) {
         throw new Error('Usuário não autenticado.');
       }
-      const payload = {
+      return apiClient.post('/equipamento/espaco', {
         usuarioId: user.id,
         espacoId: data.espacoId,
         equipamentos: data.equipamentos,
-      };
-      return apiClient.post('/equipamento/espaco', payload);
+      });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['equipamentoEspaco', variables.espacoId] });
@@ -62,6 +59,7 @@ export function useLinkEquipamentosToEspaco() {
     },
   });
 }
+
 export function useUnlinkEquipamentosFromEspaco() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore.getState();
@@ -70,11 +68,10 @@ export function useUnlinkEquipamentosFromEspaco() {
       if (!user) {
         throw new Error('Usuário não autenticado.');
       }
-      const payload = {
+      return apiClient.post('/equipamento/espaco/inativacoes', {
         usuarioId: user.id,
         equipamentoEspacoIds: data.equipamentoEspacoIds,
-      };
-      return apiClient.post('/equipamento/espaco/inativacoes', payload);
+      });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['equipamentoEspaco', variables.espacoId] });
@@ -104,29 +101,11 @@ export function useGetEspacoForEquipamento(equipamentoId: string) {
   });
 }
 
-export function useGetEquipamentosByTipo(tipoId: string) {
-  return useQuery({
-    queryKey: ['equipamentosByTipo', tipoId],
-    queryFn: async () => {
-      const response = await apiClient.get<{ data: PaginatedResponse<Equipamento> }>('/equipamento', {
-        params: { tipoEquipamento: tipoId, status: EquipamentoStatus.ATIVO },
-      });
-      return response.data.data.content;
-    },
-    enabled: !!tipoId,
-  });
-}
-
 const allTiposEquipamentoKeys = {
   all: ['allTiposEquipamento'] as const,
   list: (params: Record<string, any>) => [...allTiposEquipamentoKeys.all, params] as const,
 };
 
-/**
- * Fetches ALL "Tipos de Equipamento" by iterating through all pages.
- * @param params - Optional parameters like `search` to filter the results.
- * @returns A useQuery result containing a single array of all matching TipoEquipamento.
- */
 export function useGetAllTiposEquipamento(params: { search?: string } = {}) {
   return useQuery({
     queryKey: allTiposEquipamentoKeys.list(params),
@@ -134,36 +113,9 @@ export function useGetAllTiposEquipamento(params: { search?: string } = {}) {
   });
 }
 
-/**
- * Fetches ALL "Tipos de Equipamento" that are non-generic, then fetches ALL equipment
- * associated with those types. This is a workaround for backend limitations.
- * @returns A useQuery result containing a single array of all matching non-generic Equipamento.
- */
-export function useGetAllNonGenericEquipamentos() {
-  const { data: allTipos, isLoading: isLoadingTipos } = useGetAllTiposEquipamento();
-  const nonGenericQuery = useQuery({
-    queryKey: ['nonGenericEquipamentos', allTipos?.map(t => t.id)],
-    queryFn: async () => {
-      if (!allTipos) {
-        return [];
-      }
-      const nonGenericTipoIds = allTipos
-        .filter(tipo => tipo.isDetalhamentoObrigatorio)
-        .map(tipo => tipo.id);
-      if (nonGenericTipoIds.length === 0) {
-        return [];
-      }
-      const promises = nonGenericTipoIds.map(tipoId =>
-        fetchAllPaginated<Equipamento>('/equipamento', { tipoEquipamento: tipoId }),
-      );
-      const results = await Promise.all(promises);
-      return results.flat();
-    },
-    enabled: !!allTipos,
+export function useGetAllEquipamentos() {
+  return useQuery({
+    queryKey: ['allEquipamentos'],
+    queryFn: () => fetchAllPaginated<Equipamento>('/equipamento', {}),
   });
-  return {
-    data: nonGenericQuery.data,
-    isLoading: isLoadingTipos || nonGenericQuery.isLoading,
-    isError: nonGenericQuery.isError,
-  };
 }

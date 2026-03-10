@@ -1,11 +1,9 @@
-// features/espacos/components/ManageEquipamentosGenericosTab.tsx
-
 'use client';
 
 import type { EquipamentoGenerico } from '@/features/equipamentoGenerico/types';
 import type { EquipamentoGenericoEspacoCreatePayload } from '@/features/equipamentoGenerico/validation/equipamentoGenericoEspacoSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Minus, Package, Plus, PlusCircle, Trash2 } from 'lucide-react';
+import { Package, PlusCircle, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -52,18 +50,10 @@ import {
 } from '@/features/equipamentoGenerico/services/equipamentoGenericoService';
 import { equipamentoGenericoEspacoCreateSchema } from '@/features/equipamentoGenerico/validation/equipamentoGenericoEspacoSchema';
 
-// ---------------------------------------------------------------------------
-// Add dialog
-// ---------------------------------------------------------------------------
-
 type AddEquipamentoGenericoDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   espacoId: string;
-  /**
-   * IDs of catalog items already allocated to this space.
-   * Used to prevent duplicate bindings in the selector.
-   */
   linkedIds: string[];
 };
 
@@ -73,20 +63,14 @@ function AddEquipamentoGenericoDialog({
   espacoId,
   linkedIds,
 }: AddEquipamentoGenericoDialogProps) {
-  const { data: catalog, isLoading: isLoadingCatalog }
-    = useGetAllEquipamentosGenericos();
+  const { data: catalog, isLoading: isLoadingCatalog } = useGetAllEquipamentosGenericos();
   const vincularMutation = useVincularEquipamentoGenerico();
 
   const form = useForm<EquipamentoGenericoEspacoCreatePayload>({
     resolver: zodResolver(equipamentoGenericoEspacoCreateSchema),
-    defaultValues: {
-      equipamentoGenericoId: '',
-      espacoId,
-      quantidade: 1,
-    },
+    defaultValues: { equipamentoGenericoId: '', espacoId, quantidade: 1 },
   });
 
-  // Inject the parent-context espacoId whenever it changes.
   useEffect(() => {
     form.setValue('espacoId', espacoId);
   }, [espacoId, form]);
@@ -150,7 +134,6 @@ function AddEquipamentoGenericoDialog({
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="quantidade"
@@ -158,40 +141,25 @@ function AddEquipamentoGenericoDialog({
                 <FormItem>
                   <FormLabel>Quantidade</FormLabel>
                   <FormControl>
-                    {/*
-                     * valueAsNumber is mandatory here.
-                     * Without it, RHF gives Zod a string and
-                     * z.number() rejects it with invalid_type_error.
-                     */}
                     <Input
                       type="number"
                       min={1}
                       {...field}
-                      onChange={e =>
-                        field.onChange(e.target.valueAsNumber)}
+                      onChange={e => field.onChange(e.target.valueAsNumber)}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            {/* espacoId is a hidden field — injected by context, not the user */}
             <input type="hidden" {...form.register('espacoId')} />
-
             <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
               <Button
                 type="submit"
-                disabled={
-                  vincularMutation.isPending || availableItems.length === 0
-                }
+                disabled={vincularMutation.isPending || availableItems.length === 0}
               >
                 {vincularMutation.isPending ? 'Salvando...' : 'Adicionar'}
               </Button>
@@ -203,94 +171,66 @@ function AddEquipamentoGenericoDialog({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Inline quantity stepper
-// A single integer is the only mutable field — a full sheet would be
-// UX overhead. The stepper commits on every increment/decrement.
-// ---------------------------------------------------------------------------
-
-type QuantityStepperProps = {
+type QuantityInputProps = {
   vinculoId: string;
   espacoId: string;
   current: number;
 };
 
-function QuantityStepper({ vinculoId, espacoId, current }: QuantityStepperProps) {
+function QuantityInput({ vinculoId, espacoId, current }: QuantityInputProps) {
+  const [value, setValue] = useState(current);
   const atualizarMutation = useAtualizarQuantidade();
-  const isPending = atualizarMutation.isPending;
 
-  const commit = (next: number) => {
-    if (next < 1 || isPending) {
+  useEffect(() => {
+    setValue(current);
+  }, [current]);
+
+  const commit = () => {
+    if (value === current) {
+      return;
+    }
+    if (!value || value < 1) {
+      setValue(current);
       return;
     }
     toast.promise(
-      atualizarMutation.mutateAsync({
-        vinculoId,
-        espacoId,
-        quantidade: next,
-      }),
+      atualizarMutation.mutateAsync({ vinculoId, espacoId, quantidade: value }),
       {
         loading: 'Atualizando quantidade...',
         success: 'Quantidade atualizada!',
-        error: err => `Erro ao atualizar: ${err.message}`,
+        error: (err) => {
+          setValue(current); // revert on failure
+          return `Erro ao atualizar: ${err.message}`;
+        },
       },
     );
   };
 
   return (
-    <div className="flex items-center gap-1">
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        className="h-7 w-7"
-        onClick={() => commit(current - 1)}
-        disabled={current <= 1 || isPending}
-        aria-label="Diminuir quantidade"
-      >
-        <Minus className="h-3 w-3" />
-      </Button>
-      <span className="w-8 text-center text-sm font-medium tabular-nums">
-        {current}
-      </span>
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        className="h-7 w-7"
-        onClick={() => commit(current + 1)}
-        disabled={isPending}
-        aria-label="Aumentar quantidade"
-      >
-        <Plus className="h-3 w-3" />
-      </Button>
-    </div>
+    <Input
+      type="number"
+      min={1}
+      value={value}
+      onChange={e => setValue(e.target.valueAsNumber)}
+      onBlur={commit}
+      className="w-20 text-center"
+      disabled={atualizarMutation.isPending}
+      aria-label="Quantidade"
+    />
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main tab component
-// ---------------------------------------------------------------------------
 
 type ManageEquipamentosGenericosTabProps = {
   espacoId: string;
 };
 
-export function ManageEquipamentosGenericosTab({
-  espacoId,
-}: ManageEquipamentosGenericosTabProps) {
+export function ManageEquipamentosGenericosTab({ espacoId }: ManageEquipamentosGenericosTabProps) {
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
 
-  const {
-    data: allocations,
-    isLoading,
-    isError,
-  } = useGetEquipamentosGenericosEspaco(espacoId);
-
+  const { data: allocations, isLoading, isError } = useGetEquipamentosGenericosEspaco(espacoId);
   const desvincularMutation = useDesvincularEquipamentoGenerico();
 
-  const linkedIds
-    = allocations?.map(a => a.equipamentoGenerico.id) ?? [];
+  const linkedIds = allocations?.map(a => a.equipamentoGenerico.id) ?? [];
 
   const handleDesvincular = (vinculoId: string, nome: string) => {
     toast.promise(
@@ -306,7 +246,6 @@ export function ManageEquipamentosGenericosTab({
   if (isLoading) {
     return <Skeleton className="h-20 w-full mt-4" />;
   }
-
   if (isError) {
     return (
       <div className="text-red-500 text-sm mt-4">
@@ -319,9 +258,9 @@ export function ManageEquipamentosGenericosTab({
     <div>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h3 className="text-lg font-semibold">Equipamentos por Quantidade</h3>
+          <h3 className="text-lg font-semibold">Equipamentos Genéricos</h3>
           <p className="text-sm text-muted-foreground">
-            Gerencie itens de grande quantidade vinculados a este espaço.
+            Itens gerenciados por quantidade vinculados a este espaço.
           </p>
         </div>
         <Button type="button" onClick={() => setAddDialogOpen(true)}>
@@ -336,7 +275,6 @@ export function ManageEquipamentosGenericosTab({
             Nenhum equipamento genérico vinculado.
           </p>
         )}
-
         {allocations?.map(allocation => (
           <div
             key={allocation.id}
@@ -344,18 +282,14 @@ export function ManageEquipamentosGenericosTab({
           >
             <div className="flex items-center gap-3">
               <Package className="h-5 w-5 text-muted-foreground" />
-              <p className="font-medium text-sm">
-                {allocation.equipamentoGenerico.nome}
-              </p>
+              <p className="font-medium text-sm">{allocation.equipamentoGenerico.nome}</p>
             </div>
-
             <div className="flex items-center gap-3">
-              <QuantityStepper
+              <QuantityInput
                 vinculoId={allocation.id}
                 espacoId={espacoId}
                 current={allocation.quantidade}
               />
-
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
@@ -377,17 +311,13 @@ export function ManageEquipamentosGenericosTab({
                     </AlertDialogTitle>
                   </AlertDialogHeader>
                   <p className="text-sm text-muted-foreground">
-                    O vínculo será removido permanentemente. Esta ação não pode
-                    ser desfeita.
+                    O vínculo será removido permanentemente. Esta ação não pode ser desfeita.
                   </p>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() =>
-                        handleDesvincular(
-                          allocation.id,
-                          allocation.equipamentoGenerico.nome,
-                        )}
+                        handleDesvincular(allocation.id, allocation.equipamentoGenerico.nome)}
                     >
                       Remover
                     </AlertDialogAction>
