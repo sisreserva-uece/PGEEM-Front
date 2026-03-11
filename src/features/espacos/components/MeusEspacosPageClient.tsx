@@ -133,7 +133,9 @@ export function MeusEspacosPageClient() {
                         </TabsContent>
 
                         <TabsContent value="equipamentos-genericos" className="mt-6">
-                          <ManageEquipamentosGenericosTab espacoId={selectedEspaco.id} />
+                          <ManageEquipamentosGenericosTab
+                            espacoId={selectedEspaco.id}
+                          />
                         </TabsContent>
 
                         <TabsContent value="gestores" className="mt-6">

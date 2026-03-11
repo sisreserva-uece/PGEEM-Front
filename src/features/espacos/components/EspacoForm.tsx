@@ -54,7 +54,12 @@ export function EspacoForm({ entity: espaco, onSuccess }: EspacoFormProps) {
 
       <TabsContent value="equipamentos-genericos" className="mt-4">
         {isEditMode && espaco
-          ? <ManageEquipamentosGenericosTab espacoId={espaco.id} />
+          ? (
+              <ManageEquipamentosGenericosTab
+                espacoId={espaco.id}
+                canEdit={access.canManageEspacoEquipamentos}
+              />
+            )
           : <p className="text-center text-muted-foreground p-4">Salve o espaço primeiro para poder adicionar equipamentos genéricos.</p>}
       </TabsContent>
 

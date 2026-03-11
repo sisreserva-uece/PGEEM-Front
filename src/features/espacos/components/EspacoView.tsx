@@ -6,6 +6,7 @@ import {
   CalendarDays,
   HardDrive,
   Layers,
+  Package,
   ShieldCheck,
   User,
   Wrench,
@@ -16,11 +17,11 @@ import { Badge } from '@/components/ui/badge';
 import { RelatedItemLink } from '@/components/ui/related-item-link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useGetEquipamentosGenericosEspaco } from '@/features/equipamentoGenerico/services/equipamentoGenericoService';
 import { InfoItem } from '@/features/equipamentos/components/EquipamentoView';
 import { EquipamentoStatus } from '@/features/equipamentos/types';
 import { useGetEspacoGestores, useGetLinkedEquipamentos } from '../services/espacoService';
 import { EspacoAgendaTab } from './EspacoAgendaTab';
-import { ManageEquipamentosGenericosTab } from './ManageEquipamentosGenericosTab';
 
 const getStatusInfo = (status: EquipamentoStatus) => {
   switch (status) {
@@ -65,6 +66,7 @@ export function EspacoMainDataView({ entity: espaco }: { entity: Espaco }) {
 export function EspacoRelationsView({ entity: espaco }: { entity: Espaco }) {
   const { data: gestorLinks, isLoading: isLoadingGestores } = useGetEspacoGestores(espaco.id);
   const { data: equipamentoLinks, isLoading: isLoadingEquipamentos } = useGetLinkedEquipamentos(espaco.id);
+  const { data: genericoAllocations, isLoading: isLoadingGenericos } = useGetEquipamentosGenericosEspaco(espaco.id);
 
   const activeGestores = gestorLinks?.filter(link => link.estaAtivo) ?? [];
 
@@ -89,7 +91,9 @@ export function EspacoRelationsView({ entity: espaco }: { entity: Espaco }) {
         </TabsTrigger>
         <TabsTrigger value="equipamentos-genericos">
           <Layers className="mr-2 h-4 w-4" />
-          Eq. Genéricos
+          Eq. Genéricos (
+          {isLoadingGenericos ? '...' : genericoAllocations?.length ?? 0}
+          )
         </TabsTrigger>
       </TabsList>
 
@@ -98,7 +102,7 @@ export function EspacoRelationsView({ entity: espaco }: { entity: Espaco }) {
       </TabsContent>
 
       <TabsContent value="gestores" className="mt-4">
-        <div className="space-y-2 rounded-lg border p-2 min-h-[100px]">
+        <div className="space-y-2 rounded-lg border p-2 min-h-25">
           {isLoadingGestores
             ? <Skeleton className="h-12 w-full" />
             : activeGestores.length > 0
@@ -116,7 +120,7 @@ export function EspacoRelationsView({ entity: espaco }: { entity: Espaco }) {
       </TabsContent>
 
       <TabsContent value="equipamentos" className="mt-4">
-        <div className="space-y-2 rounded-lg border p-4 min-h-[100px]">
+        <div className="space-y-2 rounded-lg border p-4 min-h-25">
           {isLoadingEquipamentos
             ? <Skeleton className="h-20 w-full" />
             : (equipamentoLinks?.length ?? 0) > 0
@@ -146,7 +150,27 @@ export function EspacoRelationsView({ entity: espaco }: { entity: Espaco }) {
       </TabsContent>
 
       <TabsContent value="equipamentos-genericos" className="mt-4">
-        <ManageEquipamentosGenericosTab espacoId={espaco.id} />
+        <div className="space-y-2 rounded-lg border p-4 min-h-25">
+          {isLoadingGenericos
+            ? <Skeleton className="h-20 w-full" />
+            : (genericoAllocations?.length ?? 0) > 0
+                ? genericoAllocations!.map(allocation => (
+                    <div
+                      key={allocation.id}
+                      className="flex items-center justify-between p-2 rounded-md"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Package className="h-5 w-5 text-muted-foreground" />
+                        <p className="font-medium text-sm">{allocation.equipamentoGenerico.nome}</p>
+                      </div>
+                      <span className="text-sm text-muted-foreground tabular-nums">
+                        {allocation.quantidade}
+                        x
+                      </span>
+                    </div>
+                  ))
+                : <p className="text-center text-sm text-muted-foreground p-4">Nenhum equipamento genérico vinculado.</p>}
+        </div>
       </TabsContent>
     </Tabs>
   );
