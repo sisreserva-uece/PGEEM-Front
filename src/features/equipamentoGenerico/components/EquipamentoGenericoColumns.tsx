@@ -1,5 +1,3 @@
-// features/equipamentoGenerico/components/EquipamentoGenericoColumns.tsx
-
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';

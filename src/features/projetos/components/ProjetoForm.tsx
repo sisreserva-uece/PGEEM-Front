@@ -38,7 +38,7 @@ export function ProjetoForm({ onSuccess }: Props) {
       nome: '',
       descricao: '',
       usuarioResponsavelId: '',
-      instituicaoId: user?.instituicao.id, // Sensible default for all users
+      instituicaoId: user?.instituicao.id,
     },
   });
 

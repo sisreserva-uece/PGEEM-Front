@@ -1,5 +1,3 @@
-// config/routes.config.ts
-
 import type { UserRole } from '@/features/auth/types';
 
 export type SubItem = {

@@ -1,4 +1,3 @@
-// In src/features/complexos/components/ManageEspacosTab.tsx
 'use client';
 
 import { PlusCircle, Trash2 } from 'lucide-react';

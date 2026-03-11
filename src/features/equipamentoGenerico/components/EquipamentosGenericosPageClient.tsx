@@ -1,5 +1,3 @@
-// features/equipamentoGenerico/components/EquipamentosGenericosPageClient.tsx
-
 'use client';
 
 import type { SortingState } from '@tanstack/react-table';
@@ -71,8 +69,6 @@ export function EquipamentosGenericosPageClient() {
   const columns = getEquipamentoGenericoColumns({
     onView: handleView,
     onEdit: handleEdit,
-    // All authenticated users can view catalog entries.
-    // Only admins can edit — matching the backend's @PreAuthorize("hasRole('ADMIN')").
     canView: true,
     canEdit: access.isAdmin,
   });

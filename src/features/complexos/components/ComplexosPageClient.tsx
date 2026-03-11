@@ -7,13 +7,13 @@ import { PlusCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
-import { MasterDetailSheet } from '@/components/ui/master-detail-sheet'; // Import MasterDetailSheet
+import { MasterDetailSheet } from '@/components/ui/master-detail-sheet';
 import { useUserAccess } from '@/features/auth/hooks/useUserAccess';
 import { useGetComplexos } from '../services/complexoService';
 import { getComplexoColumns } from './ComplexoColumns';
-import { ComplexoForm } from './ComplexoForm'; // Import the new Form
+import { ComplexoForm } from './ComplexoForm';
 import { ComplexosFilterBar } from './ComplexosFilterBar';
-import { ComplexoMainDataView, ComplexoRelationsView } from './ComplexoView'; // Import the new View
+import { ComplexoMainDataView, ComplexoRelationsView } from './ComplexoView';
 
 export function ComplexosPageClient() {
   const [sheetOpen, setSheetOpen] = useState(false);

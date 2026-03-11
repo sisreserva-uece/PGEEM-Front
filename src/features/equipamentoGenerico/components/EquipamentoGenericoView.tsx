@@ -1,12 +1,7 @@
-// features/equipamentoGenerico/components/EquipamentoGenericoView.tsx
-
 'use client';
 
 import type { EquipamentoGenerico } from '../types';
 
-// InfoItem is a shared presentational primitive — imported from the
-// equipamentos feature where it was originally defined. This is a
-// UI-primitive level dependency, which is acceptable per the design plan.
 import { InfoItem } from '@/features/equipamentos/components/EquipamentoView';
 
 type EquipamentoGenericoMainDataViewProps = {

@@ -199,7 +199,7 @@ function QuantityInput({ vinculoId, espacoId, current }: QuantityInputProps) {
         loading: 'Atualizando quantidade...',
         success: 'Quantidade atualizada!',
         error: (err) => {
-          setValue(current); // revert on failure
+          setValue(current);
           return `Erro ao atualizar: ${err.message}`;
         },
       },

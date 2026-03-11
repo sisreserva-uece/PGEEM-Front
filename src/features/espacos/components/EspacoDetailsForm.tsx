@@ -74,7 +74,7 @@ export function EspacoDetailsForm({ entity: espaco, onSuccess }: EspacoDetailsFo
           observacao: values.observacao,
           precisaProjeto: values.precisaProjeto,
           multiusuario: values.multiusuario,
-          reservavel: values.reservavel, // ← ADD
+          reservavel: values.reservavel,
           tipoAtividadeIds: values.tipoAtividadeIds,
         })
       : createMutation.mutateAsync(values);

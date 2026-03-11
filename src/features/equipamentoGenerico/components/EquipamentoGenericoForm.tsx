@@ -1,5 +1,3 @@
-// features/equipamentoGenerico/components/EquipamentoGenericoForm.tsx
-
 'use client';
 
 import type { EquipamentoGenerico } from '../types';

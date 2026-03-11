@@ -14,6 +14,6 @@ export const projetoFormSchema = z.object({
 
 export type ProjetoFormValues = z.infer<typeof projetoFormSchema>;
 export type ProjetoCreatePayload = Omit<ProjetoFormValues, 'dataInicio' | 'dataFim'> & {
-  dataInicio: string; // YYYY-MM-DD
-  dataFim: string; // YYYY-MM-DD
+  dataInicio: string;
+  dataFim: string;
 };

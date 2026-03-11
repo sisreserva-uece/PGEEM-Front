@@ -1,5 +1,3 @@
-// features/equipamentoGenerico/components/EquipamentosGenericosFilterBar.tsx
-
 'use client';
 
 import { DebouncedInput } from '@/components/ui/debounced-input';
