@@ -36,7 +36,7 @@ export function Header() {
               <p>
                 {t('version')}
                 {' '}
-                1.0.0-Alpha
+                1.0.1
               </p>
             </div>
           </div>
