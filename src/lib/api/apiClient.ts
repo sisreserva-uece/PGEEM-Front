@@ -13,8 +13,12 @@ declare module 'axios' {
   }
 }
 
+const isServer = typeof window === 'undefined';
+
 const apiClient = axios.create({
-  baseURL: Env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: isServer 
+    ? (process.env.API_INTERNAL_URL || 'http://sisreserva-api:8080') 
+    : Env.NEXT_PUBLIC_API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

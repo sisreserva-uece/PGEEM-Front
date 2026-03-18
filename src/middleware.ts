@@ -14,7 +14,7 @@ export default function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   const token = request.cookies.get('accessToken')?.value;
-  const isProtectedRoute = path.includes(protectedPrefix);
+  const isProtectedRoute = path.includes(protectedPrefix) || path.includes('/analytics');
   const isPublicRoute = publicRoutes.some(route => path.includes(route));
   const isRootLocalePath = routing.locales.some(locale => path === `/${locale}`);
   const detectedLocale

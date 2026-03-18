@@ -1,39 +1,83 @@
 import { Label } from '@/components/ui/label';
+import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { ChevronUp, ChevronDown, Filter, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { meses } from '../validation/relatorioSchema';
 import { useMemo } from 'react';
 
 export function DashboardFilters({ form, tipo, departamentos, localizacoes, tiposEquipamento }: any) {
-  const { watch, setValue } = form;
+  const [isExpanded, setIsExpanded] = useState(true);
+  const { watch, setValue, reset } = form;
   const filtrosAtuais = watch();
 
   return (
-    <section className="px-10 py-5 bg-white border-b flex flex-wrap items-end gap-8 shrink-0 z-20 shadow-sm">
-      <div className="flex gap-4">
-        <SeletorData label="Período" mes={filtrosAtuais.mesInicial} ano={filtrosAtuais.anoInicial} 
-          onMesChange={(v: string) => setValue('mesInicial', v)} onAnoChange={(v: string) => setValue('anoInicial', v)} />
-        <SeletorData label="até" mes={filtrosAtuais.mesFinal} ano={filtrosAtuais.anoFinal} 
-          onMesChange={(v: string) => setValue('mesFinal', v)} onAnoChange={(v: string) => setValue('anoFinal', v)} />
+    <section className="bg-white border-b shrink-0 z-20 shadow-sm transition-all duration-300 ease-in-out">
+      <div className="px-10 py-3 flex items-center justify-between bg-slate-50/50">
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 bg-white border rounded-lg shadow-sm">
+            <Filter className="h-4 w-4 text-slate-500" />
+          </div>
+          <span className="text-xs font-black text-slate-700 uppercase tracking-widest">
+            Painel de Filtros
+          </span>
+          {!isExpanded && (
+            <div className="flex items-center gap-2 ml-4 animate-in fade-in slide-in-from-left-2">
+              <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">
+                {filtrosAtuais.mesInicial}/{filtrosAtuais.anoInicial}
+              </span>
+              <span className="text-[10px] text-slate-400">até</span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">
+                {filtrosAtuais.mesFinal}/{filtrosAtuais.anoFinal}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => reset()}
+            className="h-8 text-[10px] font-bold uppercase text-slate-400 hover:text-amber-600 transition-colors"
+          >
+            <RotateCcw className="h-3 w-3 mr-2" /> Resetar
+          </Button>
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="h-8 w-8 p-0 rounded-full bg-white border shadow-sm hover:bg-slate-50"
+          >
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
 
-      <div className="h-12 w-[1px] bg-slate-100 hidden xl:block" />
+      <div className={cn(
+        "px-10 overflow-hidden transition-all duration-300 ease-in-out",
+        isExpanded ? "py-6 opacity-100 max-h-[500px]" : "max-h-0 opacity-0 py-0"
+      )}>
+        <div className="flex flex-wrap items-end gap-8">
+          <div className="flex gap-4">
+             <SeletorData label="De" mes={filtrosAtuais.mesInicial} ano={filtrosAtuais.anoInicial} onMesChange={(v: any) => setValue('mesInicial', v)} onAnoChange={(v: any) => setValue('anoInicial', v)} />
+             <SeletorData label="Até" mes={filtrosAtuais.mesFinal} ano={filtrosAtuais.anoFinal} onMesChange={(v: any) => setValue('mesFinal', v)} onAnoChange={(v: any) => setValue('anoFinal', v)} />
+          </div>
 
-      <div className="flex items-end gap-6 flex-1 min-w-[500px]">
-        {tipo === 'espacos' ? (
-          <>
-            <FilterSelect label="Departamento" value={filtrosAtuais.departamentoId} onValueChange={(v: string) => setValue('departamentoId', v)} options={departamentos} placeholder="Todos Departamentos" prefix="dept" />
-            <FilterSelect label="Localização" value={filtrosAtuais.localizacaoId} onValueChange={(v: string) => setValue('localizacaoId', v)} options={localizacoes} placeholder="Todas Localizações" prefix="loc" />
-          </>
-        ) : (
-          <>
-            <FilterSelect label="Tipo de Equipamento" value={filtrosAtuais.tipoEquipamentoId} onValueChange={(v: string) => setValue('tipoEquipamentoId', v)} options={tiposEquipamento} placeholder="Todos os Tipos" isRawArray />
-            <div className="flex items-center gap-4 h-11 px-6 bg-slate-50 border border-slate-200 rounded-xl hover:border-emerald-500 transition-colors cursor-pointer group">
-              <Switch id="dash-multi" checked={filtrosAtuais.multiusuario} onCheckedChange={(v: boolean) => setValue('multiusuario', v)} />
-              <Label htmlFor="dash-multi" className="text-[10px] font-black text-slate-600 uppercase cursor-pointer">Multiusuário</Label>
-            </div>
-          </>
-        )}
+          <div className="h-12 w-[1px] bg-slate-100 hidden xl:block" />
+
+          <div className="flex items-end gap-6 flex-1">
+             {tipo === 'espacos' ? (
+               <>
+                 <FilterSelect label="Departamento" value={filtrosAtuais.departamentoId} onValueChange={(v: any) => setValue('departamentoId', v)} options={departamentos} placeholder="Todos Departamentos" prefix="dept" />
+                 <FilterSelect label="Localização" value={filtrosAtuais.localizacaoId} onValueChange={(v: any) => setValue('localizacaoId', v)} options={localizacoes} placeholder="Todos" prefix="loc" />
+               </>
+             ) : (
+               <FilterSelect label="Tipo Equipamento" value={filtrosAtuais.tipoEquipamentoId} onValueChange={(v: any) => setValue('tipoEquipamentoId', v)} options={tiposEquipamento} placeholder="Todos Equipamentos" prefix="equip" />
+             )}
+          </div>
+        </div>
       </div>
     </section>
   );
