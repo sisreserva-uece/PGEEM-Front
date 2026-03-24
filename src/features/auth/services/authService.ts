@@ -5,15 +5,26 @@ import bffClient from '@/lib/api/bffClient';
 
 export const authService = {
   signIn(credentials: SignInRequest) {
-    return bffClient.post<{ success: boolean }>('/bff/auth/login', credentials);
+    return bffClient.post('/bff/auth/login', credentials);
   },
+
+  internalSignIn(credentials: { login: string; senha: string }) {
+    return bffClient.post('/bff/auth/internal-login', credentials);
+  },
+
+  internalOnboarding(data: any) {
+    return bffClient.post('/bff/auth/onboarding', data);
+  },
+
   signUp(userData: SignUpRequest) {
-    return apiClient.post<void>('/auth/usuario', userData);
+    return apiClient.post('/auth/usuario', userData);
   },
+
   getMe(config?: AxiosRequestConfig) {
     return apiClient.get<MeResponse>('/auth/usuario/me', config);
   },
+
   logout() {
-    return bffClient.post<{ success: boolean }>('/bff/auth/logout');
+    return bffClient.post('/bff/auth/logout');
   },
 };
