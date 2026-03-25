@@ -59,7 +59,7 @@ export function SignInForm() {
                 <form onSubmit={internalForm.handleSubmit(data => internalSignIn(data))} className="space-y-4">
                   <FormField
                     control={internalForm.control}
-                    name="login"
+                    name="ldapUsername"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Login Institucional</FormLabel>

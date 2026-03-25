@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   let springResponse: Response;
 
   try {
-    springResponse = await fetch(`${SERVER_API_URL}/auth/onboarding/internal`, {
+    springResponse = await fetch(`${SERVER_API_URL}/auth/onboarding/interno`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

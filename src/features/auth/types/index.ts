@@ -67,17 +67,17 @@ export const signUpSchema = z
   });
 
 export const internalSignInSchema = z.object({
-  login: z.string().min(1, 'Login é obrigatório'),
+  ldapUsername: z.string().min(1, 'Login é obrigatório'),
   senha: z.string().min(1, 'Senha é obrigatória'),
 });
 
 export const onboardingSchema = z.object({
   onboardingToken: z.string().min(1, 'Token de onboarding ausente'),
-
+  nome: nomeSchema,
+  email: emailSchema,
   documentoFiscal: documentoFiscalSchema,
   matricula: matriculaSchema,
   telefone: telefoneSchema,
-  instituicaoId: instituicaoIdSchema,
 });
 
 export type SignInFormValues = z.infer<typeof signInSchema>;

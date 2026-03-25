@@ -2,18 +2,14 @@
 
 import type { OnboardingFormValues } from '../types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Image from 'next/image'; // [cite: 231]
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'; // [cite: 233]
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // [cite: 224]
 import { FormHeader } from '@/components/ui/typography';
-import { useGetAllInstituicoes } from '@/features/instituicao/hooks/useGetAllInstituicoes'; // [cite: 225]
-
 import { useRouter } from '@/lib/i18nNavigation';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { onboardingSchema } from '../types';
@@ -24,16 +20,16 @@ export function OnboardingForm() {
   const token = searchParams.get('token');
 
   const { submitOnboarding, isPending } = useOnboarding();
-  const { data: instituicoes, isLoading: isLoadingInstituicoes } = useGetAllInstituicoes(); // [cite: 227]
 
   const form = useForm<OnboardingFormValues>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       onboardingToken: token || '',
+      nome: '',
+      email: '',
       matricula: '',
       telefone: '',
       documentoFiscal: '',
-      instituicaoId: '',
     },
   });
 
@@ -71,6 +67,31 @@ export function OnboardingForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
+                  name="nome"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome Completo *</FormLabel>
+                      <FormControl><Input placeholder="Seu nome completo" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email *</FormLabel>
+                      <FormControl><Input type="email" placeholder="Seu email de contato preferido" disabled={isPending} {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
                   name="matricula"
                   render={({ field }) => (
                     <FormItem>
@@ -93,43 +114,17 @@ export function OnboardingForm() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="telefone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Celular (com DDD) *</FormLabel>
-                      <FormControl><Input type="tel" placeholder="(85) 99999-9999" disabled={isPending} {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="instituicaoId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Instituição *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending || isLoadingInstituicoes}>
-                        {' '}
-                        // [cite: 252]
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={isLoadingInstituicoes ? 'Carregando...' : 'Selecione sua instituição'} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {instituicoes?.map(inst => (
-                            <SelectItem key={inst.id} value={inst.id}>{inst.nome}</SelectItem> // [cite: 255]
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="telefone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Celular (com DDD) *</FormLabel>
+                    <FormControl><Input type="tel" placeholder="(85) 99999-9999" disabled={isPending} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="pt-4">
                 <Button type="submit" disabled={isPending} className="w-full">
