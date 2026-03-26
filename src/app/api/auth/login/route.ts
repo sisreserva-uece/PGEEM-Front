@@ -42,7 +42,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(errorData, { status: springResponse.status });
   }
 
-  const nextResponse = NextResponse.json({ success: true }, { status: 200 });
+  const springData = await springResponse.json();
+
+  const nextResponse = NextResponse.json(springData, { status: 200 });
 
   const setCookies = rewriteRefreshTokenPath(getSetCookieHeaders(springResponse.headers));
   for (const cookie of setCookies) {

@@ -24,13 +24,15 @@ export function FilterSelect({
 }: FilterSelectProps) {
   return (
     <Select onValueChange={onValueChange} value={value} disabled={disabled}>
-      <SelectTrigger>
-        <SelectValue placeholder={placeholder} />
+      <SelectTrigger className="w-full overflow-hidden">
+        <div className="flex-grow text-left truncate">
+           <SelectValue placeholder={placeholder} />
+        </div>
       </SelectTrigger>
       <SelectContent>
         {showAllOption && <SelectItem value="all">{allOptionLabel}</SelectItem>}
         {options?.map(option => (
-          <SelectItem key={option.id} value={option.id}>
+          <SelectItem key={option.id} value={option.id} className="max-w-[300px] truncate">
             {option.nome}
           </SelectItem>
         ))}

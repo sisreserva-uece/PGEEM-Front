@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Env } from '../env';
 import bffClient from './bffClient';
 import { extractErrorMessage } from './extractErrorMessage';
+import { updateSessionAction } from '@/features/auth/actions/authActions';
 
 declare module 'axios' {
   // eslint-disable-next-line ts/consistent-type-definitions
@@ -14,7 +15,13 @@ declare module 'axios' {
 }
 
 const apiClient = axios.create({
+<<<<<<< Updated upstream
   baseURL: Env.NEXT_PUBLIC_API_BASE_URL,
+=======
+  baseURL: isServer 
+    ? (process.env.API_INTERNAL_URL || Env.NEXT_PUBLIC_API_BASE_URL)
+    : Env.NEXT_PUBLIC_API_BASE_URL,
+>>>>>>> Stashed changes
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -42,12 +49,17 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    if (status === 401 && !originalRequest._retry) {
-      if (originalRequest.url?.includes('/api/auth/refresh')) {
-        window.location.href = '/signin';
+    if (originalRequest.url?.includes('/auth/refresh') || originalRequest.url?.includes('/auth/logout')){
+      isRefreshing = false;
+
+      if (!isServer){
+        window.location.href = '/signin'
         return Promise.reject(error);
       }
+    } 
 
+    if ((status === 401 || status === 403) && !originalRequest._retry) {
+      
       if (isRefreshing) {
         return new Promise((resolve) => {
           subscribeToRefresh(() => resolve(apiClient(originalRequest)));
@@ -58,19 +70,35 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await bffClient.post('/api/auth/refresh');
-        isRefreshing = false;
-        onRefreshed();
-        return apiClient(originalRequest);
-      } catch {
+        const response = await bffClient.post('/api/auth/refresh');
+        const newToken = response.data?.token || response.data?.data?.token || response.data?.accessToken;
+
+        if (newToken) {
+          await updateSessionAction(newToken);
+          apiClient.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          }
+          
+          isRefreshing = false;
+          onRefreshed();
+          return apiClient(originalRequest);
+        } else {
+          throw new Error('No token received');
+        }
+      } catch (refreshError) {
         isRefreshing = false;
         refreshSubscribers = [];
-        window.location.href = '/signin';
-        return Promise.reject(error);
+        
+        document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        
+        if (!isServer) window.location.href = '/signin';
+        return Promise.reject(refreshError);
       }
     }
 
-    if (status === 403) {
+    if (status === 403 && originalRequest._retry) {
       toast.error('Você não tem permissão para realizar esta ação.');
       return Promise.reject(error);
     }

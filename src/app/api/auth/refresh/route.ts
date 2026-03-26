@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Sessão expirada.' }, { status: 401 });
   }
 
-  const nextResponse = NextResponse.json({ success: true }, { status: 200 });
+  const data = await springResponse.json();
+
+  const nextResponse = NextResponse.json(data, { status: 200 });
 
   const setCookies = getSetCookieHeaders(springResponse.headers);
   for (const cookie of setCookies) {

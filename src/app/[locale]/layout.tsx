@@ -5,7 +5,7 @@ import React from 'react';
 import { Toaster } from 'sonner';
 import { CenteredPageLayout } from '@/components/CenteredPageLayout';
 import { Footer } from '@/components/Footer';
-import { ForceLogout } from '@/components/ForceLogout';
+import { redirect } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { SessionProvider } from '@/features/auth/components/SessionProvider';
 import { authService } from '@/features/auth/services/authService';
@@ -42,13 +42,8 @@ export default async function RootLayout(props: {
       });
       user = response.data.data;
     } catch {
-      return (
-        <html lang={locale} className={`${inter.className}`}>
-          <body>
-            <ForceLogout />
-          </body>
-        </html>
-      );
+      console.error("Sessão inválida no servidor.");
+      user = null;
     }
   }
 
