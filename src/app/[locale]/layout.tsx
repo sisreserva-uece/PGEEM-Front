@@ -1,11 +1,11 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
-import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
 import React from 'react';
 import { Toaster } from 'sonner';
 import { CenteredPageLayout } from '@/components/CenteredPageLayout';
 import { Footer } from '@/components/Footer';
-import { ForceLogout } from '@/components/ForceLogout';
 import { Header } from '@/components/Header';
 import { SessionProvider } from '@/features/auth/components/SessionProvider';
 import { authService } from '@/features/auth/services/authService';
@@ -13,12 +13,39 @@ import { ProtectedNavigation } from '@/features/nav-bar/components/ProtectedNavi
 import { inter } from '@/lib/font';
 import { routing } from '@/lib/i18nNavigation';
 import { AppProviders } from '@/lib/providers/AppProviders';
+import { SERVER_API_URL } from '@/lib/serverEnv';
 import { getSession } from '@/lib/session';
 import '@fontsource/inter';
 import '@/styles/global.css';
 
 export function generateStaticParams() {
   return routing.locales.map(locale => ({ locale }));
+}
+
+async function forceLogoutAndRedirect(locale: string): Promise<never> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
+  const refreshToken = cookieStore.get('refreshToken')?.value;
+
+  const cookieHeader = [
+    accessToken && `accessToken=${accessToken}`,
+    refreshToken && `refreshToken=${refreshToken}`,
+  ]
+    .filter(Boolean)
+    .join('; ');
+
+  try {
+    await fetch(`${SERVER_API_URL}/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookieHeader && { Cookie: cookieHeader }),
+      },
+    });
+  } catch {
+  }
+
+  redirect(`/${locale}/signin`);
 }
 
 export default async function RootLayout(props: {
@@ -42,13 +69,7 @@ export default async function RootLayout(props: {
       });
       user = response.data.data;
     } catch {
-      return (
-        <html lang={locale} className={`${inter.className}`}>
-          <body>
-            <ForceLogout />
-          </body>
-        </html>
-      );
+      await forceLogoutAndRedirect(locale);
     }
   }
 

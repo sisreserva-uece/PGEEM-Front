@@ -13,7 +13,7 @@ export function useInternalSignIn() {
     mutationFn: async (data: InternalSignInFormValues) => {
       const response = await authService.internalSignIn(data);
       if (response.status === 202) {
-        return { type: 'onboarding', token: response.data.onboardingToken };
+        return { type: 'onboarding', token: response.data.data.onboardingToken };
       }
       const meResponse = await authService.getMe();
       return { type: 'success', user: meResponse.data.data! };

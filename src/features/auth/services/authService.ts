@@ -1,5 +1,5 @@
 import type { AxiosRequestConfig } from 'axios';
-import type { MeResponse, SignInRequest, SignUpRequest } from '../types';
+import type { InternalSignInFormValues, MeResponse, SignInRequest, SignUpRequest } from '../types';
 import apiClient from '@/lib/api/apiClient';
 import bffClient from '@/lib/api/bffClient';
 
@@ -8,7 +8,7 @@ export const authService = {
     return bffClient.post('/bff/auth/login', credentials);
   },
 
-  internalSignIn(credentials: { login: string; senha: string }) {
+  internalSignIn(credentials: InternalSignInFormValues) {
     return bffClient.post('/bff/auth/internal-login', credentials);
   },
 
