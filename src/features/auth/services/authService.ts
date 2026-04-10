@@ -13,6 +13,9 @@ export const authService = {
   getMe(config?: AxiosRequestConfig) {
     return apiClient.get<MeResponse>('/auth/usuario/me', config);
   },
+  updateUser(id: string, userData: Partial<SignUpRequest>) {
+    return apiClient.put<MeResponse>(`/auth/usuario/${id}`, userData);
+  },
   logout() {
     return bffClient.post<{ success: boolean }>('/api/auth/logout');
   },

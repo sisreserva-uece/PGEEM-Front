@@ -93,6 +93,7 @@ export type instituicao = {
 
 export type UserProfile = {
   cargos: cargo[];
+  email: string;
   documentoFiscal: string;
   fotoPerfil?: string;
   id: string;

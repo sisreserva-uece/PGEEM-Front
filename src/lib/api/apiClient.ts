@@ -14,14 +14,12 @@ declare module 'axios' {
   }
 }
 
+const isServer = typeof window === 'undefined';
+
 const apiClient = axios.create({
-<<<<<<< Updated upstream
-  baseURL: Env.NEXT_PUBLIC_API_BASE_URL,
-=======
   baseURL: isServer 
     ? (process.env.API_INTERNAL_URL || Env.NEXT_PUBLIC_API_BASE_URL)
     : Env.NEXT_PUBLIC_API_BASE_URL,
->>>>>>> Stashed changes
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

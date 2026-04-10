@@ -2,7 +2,7 @@
 
 import { Download, BarChart3 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RelatorioConfigDialog } from './RelatorioConfigDialog';
@@ -22,6 +22,31 @@ export function RelatoriosPageClient() {
   const [isDashOpen, setIsDashOpen] = useState(false);
 
   const activeTab = searchParams.get('tab') === 'equipamentos' ? 'equipamentos' : 'espacos';
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (isDashOpen) {
+        setIsDashOpen(false); 
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isDashOpen]);
+
+  const handleOpenDashboard = () => {
+    window.history.pushState({ modal: 'dashboard' }, '', window.location.pathname + window.location.search + '#dashboard');
+    setIsDashOpen(true);
+  };
+
+  const handleCloseDashboard = (open: boolean) => {
+    if (!open) {
+      setIsDashOpen(false);
+      if (window.location.hash === '#dashboard') {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+  };
 
   const handleTabChange = (tab: string) => {
     router.push(`/dashboard/relatorios?tab=${tab}`);
@@ -48,7 +73,7 @@ export function RelatoriosPageClient() {
         </div>
         <div className="flex items-center space-x-2">
         <Button 
-          onClick={() => setIsDashOpen(true)}
+          onClick={handleOpenDashboard} 
           variant="outline"
           className="border-[#10B981] text-[#10B981] hover:bg-[#10B981]/10 font-bold"
           disabled={selectedIds.length === 0}
@@ -93,7 +118,7 @@ export function RelatoriosPageClient() {
 
       <RelatorioDashboard 
         isOpen={isDashOpen}
-        onOpenChange={setIsDashOpen}
+        onOpenChange={handleCloseDashboard} 
         tipo={activeTab}
         idsSelecionados={selectedIds}
       />

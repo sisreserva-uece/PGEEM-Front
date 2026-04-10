@@ -39,7 +39,7 @@ export function ProtectedNavigation() {
         <NavigationMenu className="w-full py-2">
           <div className="w-full overflow-x-auto">
             <NavigationMenuList className="justify-start whitespace-nowrap">
-              {accessibleRoutes.map((item) => {
+              {accessibleRoutes.map((item, index) => {
                 const visibleSubItems = item.subItems?.filter((sub) => {
                   const hasRoleAccess = hasAccess(sub.allowedRoles);
                   if (sub.isManagerOnly) {
@@ -79,7 +79,7 @@ export function ProtectedNavigation() {
                 }
                 if (!item.subItems && item.href !== '#') {
                   return (
-                    <NavigationMenuItem key={item.title}>
+                    <NavigationMenuItem key={`${item.title}-${index}`}>
                       <NavigationMenuLink asChild>
                         <Link href={item.href} className="px-3 py-2">{item.title}</Link>
                       </NavigationMenuLink>

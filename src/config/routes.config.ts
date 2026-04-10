@@ -66,10 +66,10 @@ export const routesConfig: RouteConfig[] = [
     allowedRoles: ['ADMIN', 'USUARIO_INTERNO', 'USUARIO_EXTERNO'],
   },
   {
-    title: 'Usuários',
-    href: '/dashboard/usuarios',
-    path: '/dashboard/usuarios',
-    allowedRoles: ['ADMIN'],
+    title: 'Dados Pessoais',
+    href: '/dashboard/editar',
+    path: '/dashboard/editar',
+    allowedRoles: ['USUARIO_EXTERNO'],
   },
   {
     title: 'Projetos',

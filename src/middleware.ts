@@ -25,14 +25,10 @@ export default function middleware(request: NextRequest) {
   if (path.startsWith('/_next') || path.includes('.')) {
     return NextResponse.next();
   }
-<<<<<<< Updated upstream
-  const token = request.cookies.get('accessToken')?.value;
-  const isProtectedRoute = path.includes(protectedPrefix);
-=======
 
   const detectedLocale = routing.locales.find(l => path.startsWith(`/${l}/`) || path === `/${l}`) ?? routing.defaultLocale;
   const urlLocalePrefix = `/${detectedLocale}`;
->>>>>>> Stashed changes
+
   const isPublicRoute = publicRoutes.some(route => path.includes(route));
 
   if (token && isTokenExpired(token)) {
