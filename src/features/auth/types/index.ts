@@ -26,20 +26,12 @@ const documentoFiscalSchema = z
     message: 'CPF inválido',
   });
 
-const matriculaSchema = z.string().min(1, 'Matrícula é obrigatória');
-
 const telefoneSchema = z.string().refine(
   val => isValidPhoneNumber(val, 'BR'),
   {
     message: 'Telefone inválido (Informe o DDD + Número)',
   },
 );
-
-const instituicaoIdSchema = z.string({
-  required_error: 'Por favor, selecione uma instituição.',
-});
-
-const fotoPerfilSchema = z.string().url('URL inválida').optional().or(z.literal(''));
 
 export const signInSchema = z.object({
   email: emailSchema,
@@ -52,14 +44,8 @@ export const signUpSchema = z
     email: emailSchema,
     senha: senhaSchema,
     confirmSenha: z.string(),
-
     documentoFiscal: documentoFiscalSchema,
-    matricula: matriculaSchema,
     telefone: telefoneSchema,
-    instituicaoId: instituicaoIdSchema,
-
-    fotoPerfil: fotoPerfilSchema,
-    cargosNome: z.enum(ROLES),
   })
   .refine(data => data.senha === data.confirmSenha, {
     message: 'As senhas não coincidem',
@@ -76,7 +62,7 @@ export const onboardingSchema = z.object({
   nome: nomeSchema,
   email: emailSchema,
   documentoFiscal: documentoFiscalSchema,
-  matricula: matriculaSchema,
+  matricula: z.string().min(1, 'Matrícula é obrigatória'),
   telefone: telefoneSchema,
 });
 
@@ -87,12 +73,7 @@ export type OnboardingFormValues = z.infer<typeof onboardingSchema>;
 
 export type SignInRequest = SignInFormValues;
 
-export type SignUpRequest = Omit<
-  SignUpFormValues,
-    'confirmSenha' | 'cargosNome'
-> & {
-  matricula: string;
-  instituicaoId: string;
+export type SignUpRequest = Omit<SignUpFormValues, 'confirmSenha'> & {
   refreshTokenEnabled: boolean;
   cargosNome: string[];
 };
@@ -119,8 +100,6 @@ export type UserProfile = {
   documentoFiscal: string;
   fotoPerfil?: string;
   id: string;
-  instituicao: instituicao;
-  matricula?: number;
   nome: string;
   refreshTokenEnabled: boolean;
   telefone?: string;

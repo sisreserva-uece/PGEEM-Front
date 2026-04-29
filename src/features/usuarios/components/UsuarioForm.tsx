@@ -98,17 +98,6 @@ export function UsuarioForm({ entity: usuario, onSuccess }: Props) {
                   </FormItem>
                 )}
               />
-              <FormField
-                name="fotoPerfil"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL da Foto de Perfil</FormLabel>
-                    <FormControl><Input type="url" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
             <FormField
               name="instituicaoId"
@@ -117,9 +106,22 @@ export function UsuarioForm({ entity: usuario, onSuccess }: Props) {
                 <FormItem>
                   <FormLabel>Instituição</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Selecione uma instituição" /></SelectTrigger></FormControl>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder="Selecione uma instituição"
+                        />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent>
-                      {allInstituicoes?.map(i => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                      {allInstituicoes?.map(i => (
+                        <SelectItem
+                          key={i.id}
+                          value={i.id}
+                        >
+                          {i.nome}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -131,7 +133,12 @@ export function UsuarioForm({ entity: usuario, onSuccess }: Props) {
               control={form.control}
               render={({ field }) => (
                 <FormItem className="flex items-center space-x-3 rounded-md border p-4">
-                  <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Habilitar Sessão Contínua</FormLabel>
                     <p className="text-xs text-muted-foreground">
