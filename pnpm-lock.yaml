@@ -11,6 +11,9 @@ importers:
       '@fontsource/inter':
         specifier: ^5.1.1
         version: 5.2.8
+      '@fullcalendar/core':
+        specifier: ^6.1.20
+        version: 6.1.20
       '@fullcalendar/daygrid':
         specifier: ^6.1.19
         version: 6.1.20(@fullcalendar/core@6.1.20)

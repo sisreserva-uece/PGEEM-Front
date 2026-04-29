@@ -37,7 +37,9 @@ export function useGetSolicitacoesByEspaco(params: Record<string, any>) {
   return useQuery({
     queryKey: ['solicitacoes', params],
     queryFn: async () => {
-      const response = await apiClient.get<{ data: PaginatedResponse<Reserva> }>('/solicitacao-reserva', { params });
+      const response = await apiClient.get<{
+        data: PaginatedResponse<Reserva>;
+      }>('/solicitacao-reserva', { params });
       return response.data.data;
     },
     placeholderData: keepPreviousData,
@@ -49,7 +51,9 @@ export function useGetSolicitacoesByEspacoEquipamentos(params: Record<string, an
   return useQuery({
     queryKey: ['solicitacoes', params],
     queryFn: async () => {
-      const response = await apiClient.get<{ data: PaginatedResponse<Reserva> }>('/solicitacao-reserva', { params });
+      const response = await apiClient.get<{
+        data: PaginatedResponse<Reserva>;
+      }>('/solicitacao-reserva', { params });
       return response.data.data;
     },
     placeholderData: keepPreviousData,
@@ -57,40 +61,43 @@ export function useGetSolicitacoesByEspacoEquipamentos(params: Record<string, an
   });
 }
 
-export function useGetAgendaReservas(resource: ReservableResource | null) {
+export function useGetAgendaReservas(
+  resource: ReservableResource | null,
+  visibleMonth: { year: number; month: number } | null, // month is 1-indexed
+) {
   return useQuery({
-    queryKey: ['reservas', 'agenda', resource?.type, resource?.id],
+    queryKey: ['reservas', 'agenda', resource?.type, resource?.id, visibleMonth],
     queryFn: async () => {
-      if (!resource) {
+      if (!resource || !visibleMonth) {
         return [];
       }
 
       const filter = buildResourceFilter(resource);
 
-      const approved = fetchAllPaginated<Reserva>('solicitacao-reserva', {
-        ...filter,
-        statusCodigo: ReservaStatus.APROVADO,
-      });
-
-      const pending = fetchAllPaginated<Reserva>('solicitacao-reserva', {
-        ...filter,
-        statusCodigo: ReservaStatus.PENDENTE,
-      });
-
-      const adjustment = fetchAllPaginated<Reserva>('solicitacao-reserva', {
-        ...filter,
-        statusCodigo: ReservaStatus.PENDENTE_AJUSTE,
-      });
-
       const [approvedRes, pendingRes, adjustmentRes] = await Promise.all([
-        approved,
-        pending,
-        adjustment,
+        fetchAllPaginated<Reserva>('solicitacao-reserva', {
+          ...filter,
+          statusCodigo: ReservaStatus.APROVADO,
+          mes: visibleMonth.month,
+          ano: visibleMonth.year,
+        }),
+        fetchAllPaginated<Reserva>('solicitacao-reserva', {
+          ...filter,
+          statusCodigo: ReservaStatus.PENDENTE,
+          mes: visibleMonth.month,
+          ano: visibleMonth.year,
+        }),
+        fetchAllPaginated<Reserva>('solicitacao-reserva', {
+          ...filter,
+          statusCodigo: ReservaStatus.PENDENTE_AJUSTE,
+          mes: visibleMonth.month,
+          ano: visibleMonth.year,
+        }),
       ]);
 
       return [...approvedRes, ...pendingRes, ...adjustmentRes];
     },
-    enabled: !!resource,
+    enabled: !!resource && !!visibleMonth,
   });
 }
 

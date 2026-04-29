@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useGetProjetos } from '@/features/projetos/services/projetoService';
+import { ModoRecorrenciaMensal } from '@/features/reservas/types';
 import { useCreateReserva } from '../services/reservaService';
 import { TipoRecorrencia } from '../types';
 import { buildReservaPayload } from '../utils/buildReservaPayload';
@@ -106,6 +107,9 @@ export function SolicitarReservaDialog({ resource, open, onOpenChange, initialDa
       tipoRecorrencia: values.tipoRecorrencia,
       ...(isRecorrente && values.dataFimRecorrencia && {
         dataFimRecorrencia: buildDataFimRecorrenciaISO(values.dataFimRecorrencia, values.dataFim),
+      }),
+      ...(values.tipoRecorrencia === TipoRecorrencia.MENSAL && {
+        modoRecorrenciaMensal: values.modoRecorrenciaMensal ?? ModoRecorrenciaMensal.DIA_DO_MES,
       }),
     };
 

@@ -7,17 +7,17 @@ import { useWatch } from 'react-hook-form';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TipoRecorrencia, TipoRecorrenciaMap } from '../types';
-import {
-  buildRecorrenciaSummary,
-  getWeekdayName,
-} from '../utils/recorrenciaUtils';
+import { ModoRecorrenciaMensal, ModoRecorrenciaMensalMap, TipoRecorrencia, TipoRecorrenciaMap } from '../types';
+import { buildRecorrenciaSummary, getWeekdayName } from '../utils/recorrenciaUtils';
 
 const RECORRENCIA_OPTIONS = [
   TipoRecorrencia.NAO_REPETE,
   TipoRecorrencia.DIARIA,
   TipoRecorrencia.SEMANAL,
   TipoRecorrencia.MENSAL,
+  TipoRecorrencia.A_CADA_DUAS_SEMANAS,
+  TipoRecorrencia.A_CADA_TRES_SEMANAS,
+  TipoRecorrencia.A_CADA_QUATRO_SEMANAS,
 ] as const;
 
 type Props = {
@@ -25,15 +25,15 @@ type Props = {
 };
 
 export function RecorrenciaFields({ control }: Props) {
-  const [tipoRecorrencia, dataInicio, dataFimRecorrencia] = useWatch({
+  const [tipoRecorrencia, dataInicio, dataFimRecorrencia, modoRecorrenciaMensal] = useWatch({
     control,
-    name: ['tipoRecorrencia', 'dataInicio', 'dataFimRecorrencia'],
+    name: ['tipoRecorrencia', 'dataInicio', 'dataFimRecorrencia', 'modoRecorrenciaMensal'],
   });
 
   const tipo = tipoRecorrencia ?? TipoRecorrencia.NAO_REPETE;
   const isRecorrente = tipo !== TipoRecorrencia.NAO_REPETE;
 
-  const summary = buildRecorrenciaSummary(dataInicio, dataFimRecorrencia, tipo);
+  const summary = buildRecorrenciaSummary(dataInicio, dataFimRecorrencia, tipo, modoRecorrenciaMensal);
 
   return (
     <div className="space-y-3">
@@ -77,6 +77,38 @@ export function RecorrenciaFields({ control }: Props) {
             </p>
           )}
 
+          {tipo === TipoRecorrencia.MENSAL && (
+            <FormField
+              control={control}
+              name="modoRecorrenciaMensal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Modo de repetição mensal</FormLabel>
+                  <Select
+                    onValueChange={val => field.onChange(Number(val) as ModoRecorrenciaMensal)}
+                    value={String(field.value ?? ModoRecorrenciaMensal.DIA_DO_MES)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(ModoRecorrenciaMensal)
+                        .filter((v): v is ModoRecorrenciaMensal => typeof v === 'number')
+                        .map(opt => (
+                          <SelectItem key={opt} value={String(opt)}>
+                            {ModoRecorrenciaMensalMap[opt]}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           <FormField
             control={control}
             name="dataFimRecorrencia"
@@ -95,7 +127,9 @@ export function RecorrenciaFields({ control }: Props) {
           />
 
           {summary && (
-            <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300">
+            <div
+              className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
+            >
               <Info className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{summary}</span>
             </div>
