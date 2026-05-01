@@ -6,11 +6,12 @@ import { authService } from '../services/authService';
 
 export function useSignUp() {
   const router = useRouter();
+
   const { mutate: signUp, isPending } = useMutation({
     mutationFn: (data: SignUpFormValues) => {
       const requestData: SignUpRequest = {
         ...data,
-        cargosNome: [data.cargosNome],
+        cargosNome: ['USUARIO_EXTERNO'],
         refreshTokenEnabled: true,
       };
       return authService.signUp(requestData);
@@ -20,5 +21,6 @@ export function useSignUp() {
       router.push('/');
     },
   });
+
   return { signUp, isPending };
 }

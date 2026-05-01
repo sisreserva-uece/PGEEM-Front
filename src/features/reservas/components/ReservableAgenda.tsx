@@ -43,17 +43,49 @@ export default function ReservableAgenda({ resource }: Props) {
   const [dialogDates, setDialogDates] = useState<{ start: Date; end: Date } | undefined>(undefined);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedReserva, setSelectedReserva] = useState<Reserva | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState<{ year: number; month: number } | null>(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() + 1 };
+  });
 
-  const { data: reservas, isLoading: isLoadingReservas } = useGetAgendaReservas(resource);
+  const { data: reservas, isLoading: isLoadingReservas } = useGetAgendaReservas(resource, visibleMonth);
+
+  const handleDatesSet = useCallback((dateInfo: { start: Date }) => {
+    setVisibleMonth({ year: dateInfo.start.getFullYear(), month: dateInfo.start.getMonth() + 1 });
+  }, []);
 
   const calendarEvents = useMemo((): EventInput[] => {
     if (!reservas) {
       return [];
     }
 
-    return reservas.map((reserva: Reserva) => {
+    return reservas.flatMap((reserva: Reserva) => {
+      if (reserva.isSerie && reserva.ocorrenciasMes?.length) {
+        return reserva.ocorrenciasMes.map((oc) => {
+          const { backgroundColor, borderColor, title } = getEventStyle(
+            { ...reserva, status: oc.status },
+            user?.id,
+          );
+          return {
+            id: `${reserva.id}-${oc.dataOcorrencia}`,
+            start: parseUtcToLocal(oc.dataInicio),
+            end: parseUtcToLocal(oc.dataFim),
+            title,
+            backgroundColor,
+            borderColor,
+            extendedProps: {
+              reserva: {
+                ...reserva,
+                dataInicio: oc.dataInicio,
+                dataFim: oc.dataFim,
+                status: oc.status,
+              },
+            },
+          };
+        });
+      }
       const { backgroundColor, borderColor, title } = getEventStyle(reserva, user?.id);
-      return {
+      return [{
         id: reserva.id,
         start: parseUtcToLocal(reserva.dataInicio),
         end: parseUtcToLocal(reserva.dataFim),
@@ -61,7 +93,7 @@ export default function ReservableAgenda({ resource }: Props) {
         backgroundColor,
         borderColor,
         extendedProps: { reserva },
-      };
+      }];
     });
   }, [reservas, user?.id]);
 
@@ -92,6 +124,7 @@ export default function ReservableAgenda({ resource }: Props) {
           events={calendarEvents}
           onDateSelect={handleDateSelect}
           onEventClick={handleEventClick}
+          onDatesSet={handleDatesSet}
         />
       </div>
 

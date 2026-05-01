@@ -1,6 +1,6 @@
 'use client';
 
-import type { DateSelectArg, EventClickArg, EventInput } from '@fullcalendar/core';
+import type { DateSelectArg, DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
@@ -12,9 +12,10 @@ type SchedulerProps = {
   events: EventInput[];
   onDateSelect: (arg: DateSelectArg) => void;
   onEventClick: (arg: EventClickArg) => void;
+  onDatesSet?: (arg: DatesSetArg) => void;
 };
 
-export function Scheduler({ events, onDateSelect, onEventClick }: SchedulerProps) {
+export function Scheduler({ events, onDateSelect, onEventClick, onDatesSet }: SchedulerProps) {
   return (
     <div className="p-1">
       <div className="flex items-center mb-2">
@@ -53,6 +54,7 @@ export function Scheduler({ events, onDateSelect, onEventClick }: SchedulerProps
         selectMirror={true}
         select={onDateSelect}
         eventClick={onEventClick}
+        datesSet={onDatesSet}
         selectOverlap={false}
         eventOverlap={false}
       />

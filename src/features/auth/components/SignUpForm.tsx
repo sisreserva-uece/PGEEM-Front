@@ -7,9 +7,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormHeader } from '@/components/ui/typography';
-import { useGetAllInstituicoes } from '@/features/instituicao/hooks/useGetAllInstituicoes';
 import { useRouter } from '@/lib/i18nNavigation';
 import { useSignUp } from '../hooks/useSignUp';
 import { signUpSchema } from '../types';
@@ -17,7 +15,6 @@ import { signUpSchema } from '../types';
 export function SignUpForm() {
   const router = useRouter();
   const { signUp, isPending } = useSignUp();
-  const { data: instituicoes, isLoading: isLoadingInstituicoes } = useGetAllInstituicoes();
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -26,12 +23,9 @@ export function SignUpForm() {
       email: '',
       senha: '',
       confirmSenha: '',
-      matricula: '',
       telefone: '',
       documentoFiscal: '',
       fotoPerfil: '',
-      cargosNome: 'USUARIO_INTERNO',
-      instituicaoId: '',
     },
   });
 
@@ -70,7 +64,13 @@ export function SignUpForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nome Completo *</FormLabel>
-                      <FormControl><Input placeholder="Digite seu nome" disabled={isPending} {...field} /></FormControl>
+                      <FormControl>
+                        <Input
+                          placeholder="Digite seu nome"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -81,7 +81,14 @@ export function SignUpForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email *</FormLabel>
-                      <FormControl><Input type="email" placeholder="Digite seu email" disabled={isPending} {...field} /></FormControl>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Digite seu email"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -95,7 +102,14 @@ export function SignUpForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Senha *</FormLabel>
-                      <FormControl><Input type="password" placeholder="Mínimo 8 caracteres" disabled={isPending} {...field} /></FormControl>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Mínimo 8 caracteres"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -106,25 +120,21 @@ export function SignUpForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Confirmar Senha *</FormLabel>
-                      <FormControl><Input type="password" placeholder="Confirme sua senha" disabled={isPending} {...field} /></FormControl>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Confirme sua senha"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="matricula"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Matrícula *</FormLabel>
-                      <FormControl><Input inputMode="numeric" placeholder="Digite sua matrícula" disabled={isPending} {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="telefone"
@@ -149,61 +159,13 @@ export function SignUpForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>CPF *</FormLabel>
-                      <FormControl><Input placeholder="Digite seu CPF (apenas números)" disabled={isPending} {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="instituicaoId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Instituição *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending || isLoadingInstituicoes}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={isLoadingInstituicoes ? 'Carregando...' : 'Selecione sua instituição'} />
-                        </SelectTrigger>
+                        <Input
+                          placeholder="Digite seu CPF (apenas números)"
+                          disabled={isPending}
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {instituicoes?.map(inst => (
-                          <SelectItem key={inst.id} value={inst.id}>{inst.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="cargosNome"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cargo *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
-                        <FormControl>
-                          <SelectTrigger><SelectValue placeholder="Selecione seu cargo" /></SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="USUARIO_INTERNO">Usuário Interno</SelectItem>
-                          <SelectItem value="USUARIO_EXTERNO">Usuário Externo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="fotoPerfil"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>URL da Foto de Perfil</FormLabel>
-                      <FormControl><Input type="url" placeholder="URL da sua foto (opcional)" disabled={isPending} {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

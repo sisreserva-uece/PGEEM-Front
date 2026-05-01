@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TipoRecorrencia } from '../types';
+import { ModoRecorrenciaMensal, TipoRecorrencia } from '../types';
 
 export const reservaFormSchema = z
   .object({
@@ -11,6 +11,7 @@ export const reservaFormSchema = z
     ),
     tipoRecorrencia: z.nativeEnum(TipoRecorrencia).default(TipoRecorrencia.NAO_REPETE),
     dataFimRecorrencia: z.date().optional(),
+    modoRecorrenciaMensal: z.nativeEnum(ModoRecorrenciaMensal).optional(),
   })
   .refine(data => data.dataFim > data.dataInicio, {
     message: 'A data/hora de fim deve ser posterior à de início.',
@@ -49,4 +50,5 @@ export type ReservaCreatePayload = Omit<ReservaFormValues, 'dataInicio' | 'dataF
   espacoId?: string;
   equipamentoId?: string;
   dataFimRecorrencia?: string;
+  modoRecorrenciaMensal?: number;
 };
